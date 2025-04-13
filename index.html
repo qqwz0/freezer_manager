@@ -1,0 +1,43 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freezer Manager</title>
+  <link rel="stylesheet" href="css/register.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <!-- Your Firebase config file -->
+  <script src="js/firebase-config.js" type="module"></script>
+</head>
+<body>
+    <div class="registration-container">
+        <div class="registration-header">
+            <h2>Вхід</h2>
+            <span class="divider"></span>
+        </div>
+        <div class="registration-body">
+            <form id="login-form">
+                <div class="registration-box">
+                    <div class="input-box">
+                        <label for="">Пошта</label>
+                        <input type="email" class="input-field" placeholder="Введіть свою електронну адресу">
+                    </div>
+                    <div class="input-box">
+                        <label for="">Пароль</label>
+                        <input type="password" class="input-field" placeholder="Введіть свій пароль">
+                    </div>
+                </div>
+                <button class="btn-register">Вхід</button>
+            </form>
+        </div>
+        <div class="registration-footer">
+            <h3>Не маєш облікового запису? <a href="register.html"> Зареєструйся</a></h3>
+        </div>
+    </div>
+    <script src="js/script.js" type="module"></script>
+</body>
+</html>
