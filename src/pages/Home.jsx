@@ -1,6 +1,6 @@
 // src/components/SeedButton.jsx
 import React from "react";
-import { createFreezer, createShelf, createProduct } from "../firebase/config";
+import { createFreezer, createShelf, createProduct } from "../firebase/firestoreService";
 import { getAuth } from "firebase/auth";
 
 export default function Home() {

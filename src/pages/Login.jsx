@@ -1,5 +1,5 @@
 import React from 'react'
-import { login } from '../firebase/config'
+import { login } from '../firebase/auth'
 import AuthForm from '../components/AuthForm'
 
 function Login() {

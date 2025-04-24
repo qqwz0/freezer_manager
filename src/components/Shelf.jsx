@@ -1,17 +1,39 @@
 import React from 'react'
 import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from 'flowbite-react'
+import { useState } from 'react'
+import { useEffect } from 'react'
 import ShelfProduct from './ShelfProduct'
 
-export function Shelf() {
+export function Shelf({ shelf }) {
+  const [shelfName, setShelfName] = React.useState(null);
+  const [products, setProducts] = React.useState(null);
+
+  useEffect(() => {
+    const getShelfData = () => {
+      const name = shelf.name;
+      setShelfName(name);
+    }
+
+    getShelfData();
+  }, [shelf]);
+
+  useEffect(() => {
+    console.log("shelfName", shelfName);
+  }, [shelfName, products]); // This will log when either of these state values change.
+
+
   return (
     <Accordion alwaysOpen>
         <AccordionPanel>
             <AccordionTitle className='cursor-pointer'>
-                Полиця 1
+                {shelfName}
             </AccordionTitle>
-            <AccordionContent className='flex flex-col gap-2'>
-                <ShelfProduct> Продукт 1 </ShelfProduct>
-                <ShelfProduct> Продукт 2 </ShelfProduct>
+            <AccordionContent className='flex flex-col gap-2 cursor-pointer'>
+              {shelf.products.map(product => (
+                <ShelfProduct key={product.id} product={product} className='flex flex-row justify-between items-center w-full'>
+                {product.name}
+              </ShelfProduct>))}
+              
             </AccordionContent>
         </AccordionPanel>
     </Accordion>

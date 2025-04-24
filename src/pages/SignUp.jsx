@@ -1,5 +1,5 @@
 import React from 'react';
-import { signup, login } from '../firebase/config';
+import { signup, login } from '../firebase/auth';
 import AuthForm from '../components/AuthForm';
 
 export default function SignUp() {

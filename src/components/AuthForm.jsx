@@ -13,7 +13,7 @@ export default function AuthForm({ text, onSubmit }) {
     e.preventDefault();
     try {
       await onSubmit(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error during authentication:', error);
       alert(`Authentication failed: ${error.message}`);
