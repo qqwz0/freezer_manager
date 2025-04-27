@@ -1,12 +1,12 @@
 import React from 'react'
 import { Card } from 'flowbite-react'
+import AddButton from './AddButton'
 
 function ShelfProduct({ children, product }) {
   return (
-    <Card className="max-w-sm text-left">
+    <Card className="w-full text-left">
       <div className="flex justify-between items-center w-full">
         <span>{children}</span>
-
         <div className="flex gap-2">
           <span>{product.quantity}</span>
           <span>{product.unit}</span>
