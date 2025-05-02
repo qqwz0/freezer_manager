@@ -1,5 +1,6 @@
 import { firestore } from "./firebaseConfig";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "firebase/firestore";
+
 
 // CREATE
 
@@ -19,7 +20,6 @@ export const createShelf = async (userId, freezerId, name = "") => {
   return shelfRef.id;
 };
 
-// CREATE
 export const createProduct = async (
   userId,
   freezerId,
@@ -75,9 +75,69 @@ export const getUserFreezerData = async (userId) => {
   return freezers
 }
 
+//UPDATE
+
+export const editFreezer = async (userId, freezerId, newName) => {
+  console.log("Editing freezer:", freezerId, "to", newName);
+  if (!newName) throw new Error("New name is required");
+
+  const freezerRef = doc(firestore, "users", userId, "freezers", freezerId);
+  await updateDoc(freezerRef, {
+    name: newName,
+    updatedAt: new Date()
+  });
+};
+
+
 // DELETE
 
-// DELETE 
+export const deleteFreezer = async (userId, freezerId) => {
+  const shelvesSnap = await getDocs(
+    collection(firestore, "users", userId, "freezers", freezerId, "shelves")
+  );
+
+  await Promise.all(
+    shelvesSnap.docs.map(async (shelf) => {
+      const productsSnap = await getDocs(
+        collection(
+          firestore,
+          "users",
+          userId,
+          "freezers",
+          freezerId,
+          "shelves",
+          shelf.id,
+          "products"
+        )
+      );
+
+      await Promise.all(
+        productsSnap.docs.map((product) =>
+          deleteDoc(
+            doc(
+              firestore,
+              "users",
+              userId,
+              "freezers",
+              freezerId,
+              "shelves",
+              shelf.id,
+              "products",
+              product.id
+            )
+          )
+        )
+      );
+
+      await deleteDoc(
+        doc(firestore, "users", userId, "freezers", freezerId, "shelves", shelf.id)
+      );
+    })
+  );
+
+  await deleteDoc(doc(firestore, "users", userId, "freezers", freezerId));
+};
+
 
 export const deleteShelf = async (userId, freezerId, shelfId) => {
   const productsSnap = await getDocs(

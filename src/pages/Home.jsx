@@ -1,44 +1,92 @@
-// src/components/SeedButton.jsx
-import React from "react";
-import { createFreezer, createShelf, createProduct } from "../firebase/firestoreService";
-import { getAuth } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import {
+  createFreezer,
+  createShelf,
+  createProduct,
+  editFreezer,
+  deleteFreezer,
+} from "../firebase/firestoreService";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-export default function Home() {
-  const handleClick = async () => {
-    const user = getAuth().currentUser;
+export default function SeedButton() {
+  const [user, setUser] = useState(null);
+  const [freezerId, setFreezerId] = useState(null);
+
+  // Listen to auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(getAuth(), (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSeed = async () => {
     if (!user) {
       alert("Login first");
       return;
     }
 
     try {
-      // Створюємо морозильник
-      const freezerId = await createFreezer(user.uid, "My Freezer");
-      console.log("✅ Freezer ID:", freezerId);
+      const newFreezerId = await createFreezer(user.uid, "My Freezer");
+      setFreezerId(newFreezerId);
 
-      // Створюємо полицю
-      const shelfId = await createShelf(user.uid, freezerId, "Shelf 1");
-      console.log("✅ Shelf ID:", shelfId);
+      const shelfId = await createShelf(user.uid, newFreezerId, "Shelf 1");
 
-      // Створюємо продукти паралельно та збираємо їхні ID
       const productPromises = [
-        createProduct(user.uid, freezerId, shelfId, "Peas", 1, "kg"),
-        createProduct(user.uid, freezerId, shelfId, "Corn", 500, "g"),
-        createProduct(user.uid, freezerId, shelfId, "Ice Cream", 6, "pops"),
+        createProduct(user.uid, newFreezerId, shelfId, "Peas", 1, "kg"),
+        createProduct(user.uid, newFreezerId, shelfId, "Corn", 500, "g"),
+        createProduct(user.uid, newFreezerId, shelfId, "Ice Cream", 6, "pops"),
       ];
       const productIds = await Promise.all(productPromises);
-      console.log("✅ Product IDs:", productIds);
 
-      alert(`Seeding done!\nFreezer: ${freezerId}\nShelf: ${shelfId}\nProducts: ${productIds.join(", ")}`);
+      alert(`Seeding done!\nFreezer: ${newFreezerId}\nShelf: ${shelfId}\nProducts: ${productIds.join(", ")}`);
     } catch (err) {
       console.error("❌ Seeding error:", err);
       alert(`Error: ${err.message}`);
     }
   };
 
+  const handleCreateFreezer = async () => {
+    if (!user) {
+      alert("Login first");
+      return;
+    }
+    try {
+      const newFreezerId = await createFreezer(user.uid, "My Freezer");
+      setFreezerId(newFreezerId);
+      console.log("Created:", newFreezerId);
+    } catch (err) {
+      console.error("Create error:", err);
+    }
+  };
+
+  const handleEditFreezer = async () => {
+    if (!user || !freezerId) return alert("Login or create freezer first");
+    try {
+      await editFreezer(user.uid, freezerId, "Renamed Freezer");
+      console.log("Edited:", freezerId);
+    } catch (err) {
+      console.error("Edit error:", err);
+    }
+  };
+
+  const handleDeleteFreezer = async () => {
+    if (!user || !freezerId) return alert("Login or create freezer first");
+    try {
+      await deleteFreezer(user.uid, freezerId);
+      setFreezerId(null);
+      console.log("Deleted:", freezerId);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
   return (
-    <button onClick={handleClick}>
-      Seed freezer
-    </button>
+    <div>
+      <button onClick={handleSeed}>Seed freezer</button>
+      <button onClick={handleCreateFreezer}>Create Freezer</button>
+      <button onClick={handleEditFreezer} disabled={!freezerId}>Edit Freezer</button>
+      <button onClick={handleDeleteFreezer} disabled={!freezerId}>Delete Freezer</button>
+    </div>
   );
 }
