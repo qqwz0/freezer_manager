@@ -1,5 +1,7 @@
 import { firestore } from "./firebaseConfig";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+
+// CREATE
 
 export const createFreezer = async (userId, name) => {
   const freezerRef = await addDoc(collection(firestore, "users", userId, "freezers"), {
@@ -17,19 +19,38 @@ export const createShelf = async (userId, freezerId, name = "") => {
   return shelfRef.id;
 };
 
-export const createProduct = async (userId, freezerId, shelfId, productName, quantity = 0, unit = "") => {
+// CREATE
+export const createProduct = async (
+  userId,
+  freezerId,
+  shelfId,
+  productName,
+  quantity = 0,
+  unit = "",
+  category = "",
+  freezingDate = null,
+  expirationDate = null
+) => {
   if (!productName) throw new Error("Product name is required");
+  
+  const productData = {
+    name: productName,
+    quantity,
+    unit,
+    category,
+    createdAt: new Date(),
+    freezingDate: freezingDate instanceof Date ? freezingDate : null,
+    expirationDate: expirationDate instanceof Date ? expirationDate : null,
+  };
+
   const productRef = await addDoc(
     collection(firestore, "users", userId, "freezers", freezerId, "shelves", shelfId, "products"),
-    {
-      name: productName,
-      quantity,
-      unit,
-      createdAt: new Date(),
-    }
+    productData
   );
   return productRef.id;
 };
+
+// READ
 
 export const getUserFreezerData = async (userId) => {
   const freezersSnap = await getDocs(collection(firestore, 'users', userId, 'freezers'))
@@ -52,4 +73,69 @@ export const getUserFreezerData = async (userId) => {
   }))
 
   return freezers
+}
+
+// DELETE
+
+// DELETE 
+
+export const deleteShelf = async (userId, freezerId, shelfId) => {
+  const productsSnap = await getDocs(
+    collection(
+      firestore, 
+      "users",
+      userId,
+      "freezers",
+      freezerId,
+      "shelves",
+      shelfId,
+      "products"
+    )
+  );
+
+  await Promise.all(
+    productsSnap.docs.map((product) => 
+      deleteDoc(
+        doc(
+          firestore,
+          "users",
+          userId,
+          "freezers",
+          freezerId,
+          "shelves",
+          shelfId,
+          "products",
+          product.id
+        )
+      )
+    )
+  )
+
+  await deleteDoc(
+    doc(
+      firestore,
+      "users",
+      userId,
+      "freezers",
+      freezerId,
+      "shelves",
+      shelfId
+    )
+  );
+};
+
+export const deleteProduct = async (userId, freezerId, shelfId, productId) => {
+  await deleteDoc(
+    doc(
+      firestore,
+      "users",
+      userId,
+      "freezers",
+      freezerId,
+      "shelves",
+      shelfId,
+      "products",
+      productId
+    )
+  );
 }

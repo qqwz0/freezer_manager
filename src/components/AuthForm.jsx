@@ -23,7 +23,7 @@ export default function AuthForm({ text, onSubmit }) {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center gap-3'>
+    <div className='flex flex-col items-center justify-center gap-3 w-80'>
       <h2 className='font-bold text-4xl'>{text}</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm">
         <FormInput

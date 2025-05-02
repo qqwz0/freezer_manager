@@ -6,7 +6,7 @@ function ShelfProduct({ children, product }) {
   return (
     <Card className="w-full text-left">
       <div className="flex justify-between items-center w-full">
-        <span>{children}</span>
+        <span>{product.name}</span>
         <div className="flex gap-2">
           <span>{product.quantity}</span>
           <span>{product.unit}</span>

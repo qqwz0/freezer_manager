@@ -12,9 +12,11 @@ export default function SignUp() {
   };
 
   return (
-    <AuthForm
-      text="Sign Up"
-      onSubmit={handleSignup}
-    />
+    <div className='flex flex-col items-center justify-center gap-3 h-full w-full'>
+      <AuthForm
+        text="Sign Up"
+        onSubmit={handleSignup}
+      />
+    </div>
   );
 }

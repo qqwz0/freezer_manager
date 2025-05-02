@@ -1,20 +1,16 @@
 // Freezer.jsx
-import React from 'react'
-import { useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext'
 import { Shelf } from './Shelf'
 import { Card } from 'flowbite-react'
-import { getUserFreezerData } from '../firebase/firestoreService'
+import { getUserFreezerData, createShelf, deleteShelf } from '../firebase/firestoreService'
 import AddButton from './AddButton'
-import { createShelf } from '../firebase/firestoreService'
-import { useState } from 'react'
 import AddModal from './Modal'
 
 export default function Freezer() {
-  const [freezerData, setFreezerData] = React.useState(null);
-  const [openModal, setOpenModal] = useState(false); 
-  const [modalTitle, setModalTitle] = useState("Add Shelf");
   const user = useAuth();
+  const [freezerData, setFreezerData] = React.useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -31,28 +27,46 @@ export default function Freezer() {
     fetchData();
   }, [user]);
 
-  const handleAddShelf = ( shelfName ) => {
-    if (!shelfName) return;
+  const handleAddShelf = useCallback(async (shelfName) => {
+    if (!shelfName || !freezerData?.id) return;
 
-    createShelf(user.uid, freezerData.id, shelfName)
-      .then((shelfId) => {
-        setFreezerData(prev => ({
-          ...prev,
-          shelves: [
-            ...prev.shelves,
-            { id: shelfId, name: shelfName, products: [] }
-          ]
-        }));
-      })
-      .catch((error) => {
-        console.error("Error creating shelf:", error);
-        alert("Failed to create shelf. Please try again.");
-      });
-  };
+    try {
+      const shelfId = await createShelf(user.uid, freezerData.id, shelfName);
+      setFreezerData(prev => ({
+        ...prev,
+        shelves: [
+          ...prev.shelves, 
+          { 
+            id: shelfId, 
+            name: shelfName, 
+            products: [] 
+          }
+        ]
+      }));
+    } catch (e) {
+      console.error(e);
+      alert("Error creating shelf. Please try again.");
+    }
+  }, [user, freezerData?.id]);
+
+  const handleDeleteShelf = useCallback(async (shelfId) => {
+    try {
+      await deleteShelf(user.uid, freezerData.id, shelfId);
+      setFreezerData(prev => ({
+        ...prev, 
+        shelves: prev.shelves.filter(shelf => shelf.id !== shelfId)
+      }));
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting shelf. Please try again.");
+    }
+  })
 
   if (!freezerData || !freezerData.shelves) {
     return <div>Loading...</div>;
   }
+
+  console.log("Freezer data:", freezerData);
 
   return (
     <div className="container mx-auto p-4">
@@ -63,21 +77,27 @@ export default function Freezer() {
             <Shelf 
               key={shelf.id} 
               shelf={shelf} 
+              onDeleteShelf={handleDeleteShelf}
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
           ))}
-          <AddButton 
-            name="Shelf" 
-            handleAddition={() => {setOpenModal(true); setModalTitle("Shelf")}}
+          <AddButton
+            onClick={() => {setIsModalOpen(true);}}
+            label = "Shelf"
+            action={"Add"}
           />
         </div>
       </Card>
 
       <AddModal
-        openModal={openModal} 
-        setOpenModal={setOpenModal} 
-        handleAddition={handleAddShelf}
-        title={modalTitle}
+        show={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onAdd={(name) => {
+          handleAddShelf(name);
+          setIsModalOpen(false);
+        }}
+        required
+        title="Shelf"
       ></AddModal>
     </div>
   );

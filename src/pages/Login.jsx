@@ -13,10 +13,12 @@ function Login() {
   };
 
   return (
-    <AuthForm
-      text="Login"
-      onSubmit={handleLogin}
-    />
+    <div className='flex flex-col items-center justify-center gap-3 h-full w-full'>
+      <AuthForm
+        text="Login"
+        onSubmit={handleLogin}
+      />
+    </div>
   )
 }
 
