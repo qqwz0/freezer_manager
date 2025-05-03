@@ -7,25 +7,9 @@ import { getUserFreezerData, createShelf, deleteShelf } from '../firebase/firest
 import AddButton from './AddButton'
 import AddModal from './Modal'
 
-export default function Freezer() {
+export default function Freezer( {freezerData, setFreezerData} ) {
   const user = useAuth();
-  const [freezerData, setFreezerData] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchData = async () => {
-      try {
-        const data = await getUserFreezerData(user.uid);
-        setFreezerData(data[0]);
-      } catch (error) {
-        console.error("Error fetching freezer data:", error);
-      }
-    };
-
-    fetchData();
-  }, [user]);
 
   const handleAddShelf = useCallback(async (shelfName) => {
     if (!shelfName || !freezerData?.id) return;
@@ -35,12 +19,8 @@ export default function Freezer() {
       setFreezerData(prev => ({
         ...prev,
         shelves: [
-          ...prev.shelves, 
-          { 
-            id: shelfId, 
-            name: shelfName, 
-            products: [] 
-          }
+            ...(Array.isArray(prev.shelves) ? prev.shelves : []),
+            { id: shelfId, name: shelfName, products: [] }
         ]
       }));
     } catch (e) {
