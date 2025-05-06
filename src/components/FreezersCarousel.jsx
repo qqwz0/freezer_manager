@@ -62,6 +62,26 @@ export default function FreezerCarousel() {
         setFreezers(prev => prev.filter(f => f.id !== freezerId))
       }, []);
 
+      const handleUpdateShelf = useCallback(
+        (freezerId, shelfId, newName) => {
+          setFreezers(prevFreezers =>
+            prevFreezers.map(freezer =>
+              freezer.id === freezerId
+                ? {
+                    ...freezer,
+                    shelves: freezer.shelves.map(s =>
+                      s.id === shelfId
+                        ? { ...s, name: newName }
+                        : s
+                    )
+                  }
+                : freezer
+            )
+          );
+        },
+        [setFreezers]
+      );
+
   return (
     <>
       <Swiper
@@ -72,6 +92,7 @@ export default function FreezerCarousel() {
         style={{ width: '100%', height: '100%' }}
         observer={true}
         observeParents={true}
+        observeSlideChildren={true}
         className='w-full h-full flex justify-center items-center'
       >
         {freezers.map((fr) => (
@@ -80,6 +101,7 @@ export default function FreezerCarousel() {
             setFreezerData={handleUpdateOneFreezer}
             onDeleteFreezer={handleDeleteFreezer}
             onEditFreezer={handleUpdateOneFreezer}
+            onEditShelf={handleUpdateShelf}
             />
           </SwiperSlide>
         ))}

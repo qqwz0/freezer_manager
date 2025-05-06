@@ -1,5 +1,5 @@
 import { firestore } from "./firebaseConfig";
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from "firebase/firestore";
 
 
 // CREATE
@@ -53,24 +53,37 @@ export const createProduct = async (
 // READ
 
 export const getUserFreezerData = async (userId) => {
-  const freezersSnap = await getDocs(collection(firestore, 'users', userId, 'freezers'))
+  const freezersQuery = query(
+    collection(firestore, 'users', userId, 'freezers'), 
+    orderBy('createdAt', 'asc')
+  )
+  const freezersSnap = await getDocs(freezersQuery)
   
-  const freezers = await Promise.all(freezersSnap.docs.map(async (freezerDoc) => {
-    const freezerData = { id: freezerDoc.id, ...freezerDoc.data() }
+  const freezers = await Promise.all(
+    freezersSnap.docs.map(async (freezerDoc) => {
+      const freezerData = { id: freezerDoc.id, ...freezerDoc.data() }
 
-    const shelvesSnap = await getDocs(collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves'))
+      const shelvesQuery = query(
+        collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves'),
+        orderBy('createdAt', 'asc')
+      )
 
-    const shelves = await Promise.all(shelvesSnap.docs.map(async (shelfDoc) => {
-      const shelfData = { id: shelfDoc.id, ...shelfDoc.data() }
+      const shelvesSnap = await getDocs(shelvesQuery)
 
-      const productsSnap = await getDocs(collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves', shelfDoc.id, 'products'))
-      const products = productsSnap.docs.map(p => ({ id: p.id, ...p.data() }))
+      const shelves = await Promise.all(
+        shelvesSnap.docs.map(async (shelfDoc) => {
+          const shelfData = { id: shelfDoc.id, ...shelfDoc.data() }
 
-      return { ...shelfData, products }
-    }))
+          const productsSnap = await getDocs(collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves', shelfDoc.id, 'products'))
+          const products = productsSnap.docs.map(p => ({ id: p.id, ...p.data() }))
 
-    return { ...freezerData, shelves }
-  }))
+          return { ...shelfData, products }
+        })
+      )
+
+      return { ...freezerData, shelves }
+    })
+  )
 
   return freezers
 }
@@ -88,6 +101,13 @@ export const editFreezer = async (userId, freezerId, newName) => {
   });
 };
 
+export const editShelf = async (userId, freezerId, shelfId, name) => {
+  const shelfDocRef = doc(firestore, "users", userId, "freezers", freezerId, "shelves", shelfId);
+  await updateDoc(shelfDocRef, {
+    name,
+    updatedAt: new Date(),
+  });
+};
 
 // DELETE
 

@@ -11,7 +11,7 @@ import EditButton from './EditButton';
 import DeleteModal from './DeleteModal';
 import EditModal from './EditModal';
 
-export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer, onEditFreezer } ) {
+export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer, onEditFreezer, onEditShelf } ) {
   const user = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -78,7 +78,6 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
     }
   }, [user, freezerData?.id]);
 
-
   //DELETE SHELF
   const handleDeleteShelf = useCallback(async (shelfId) => {
     try {
@@ -124,7 +123,9 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
             <Shelf 
               key={shelf.id} 
               shelf={shelf} 
+              freezerId={freezerData.id}
               onDeleteShelf={handleDeleteShelf}
+              onUpdateShelf={onEditShelf}
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
           ))}
