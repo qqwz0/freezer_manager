@@ -1,18 +1,19 @@
-import { React, useEffect, useState, useCallback } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import SwiperCore from 'swiper';
-import { Navigation } from 'swiper/modules';
-import { getUserFreezerData, deleteFreezer, createFreezer } from '../firebase/firestoreService'
-import { useAuth } from '../contexts/AuthContext'
-import AddButton from './AddButton'
-import AddModal from './Modal'
-
+import React, { useEffect, useState, useCallback } from 'react';
+import { Swiper, SwiperSlide }           from 'swiper/react';
+import { Navigation }         from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-import Freezer from './Freezer';
+import { getUserFreezerData, deleteFreezer, createFreezer }
+  from 'services/firestoreService';
+import { useAuth } from 'contexts/AuthContext';
 
-SwiperCore.use([Navigation]);
+import { ActionButton } from 'components/common/Button';
+import { Modal } from 'components/common/Modal';
+import { Freezer } from 'components/feautures/Freezers';
+
+import 'swiper/css';
+import 'swiper/css/navigation';
 
 export default function FreezerCarousel() {
     const [freezers, setFreezers] = useState([]);
@@ -85,6 +86,7 @@ export default function FreezerCarousel() {
   return (
     <>
       <Swiper
+        modules={[Navigation]}
         spaceBetween={10}
         slidesPerView={1}
         loop={false}
@@ -106,16 +108,15 @@ export default function FreezerCarousel() {
           </SwiperSlide>
         ))}
           <SwiperSlide>
-            <AddButton label="Freezer" onClick={() => setIsModalOpen(true)} action={"Add"} />
+            <ActionButton label="Freezer" onClick={() => setIsModalOpen(true)} action="add" className="w-1/5"/>
           </SwiperSlide>
       </Swiper>
 
-      <AddModal 
+      <Modal 
         show={isModalOpen} 
         onClose={() => {setIsModalOpen(false)}} 
-        onAdd={(name) => {handleAddFreezer(name); setIsModalOpen(false)}}
-        title="Freezer" 
-        required={true}
+        onAdd={({ name }) => {handleAddFreezer(name); setIsModalOpen(false)}}
+        fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
       />
     </>
   );

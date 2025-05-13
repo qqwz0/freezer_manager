@@ -1,4 +1,4 @@
-import { firestore } from "./firebaseConfig";
+import { firestore } from "services/firebaseConfig";
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from "firebase/firestore";
 
 

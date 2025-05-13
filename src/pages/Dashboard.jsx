@@ -1,11 +1,10 @@
 import React from 'react'
-import Freezer from '../components/Freezer'
-import FreezerCarousel from '../components/FreezersCarousel'
+import { FreezersCarousel } from 'components/feautures/Freezers'
 
 function Dashboard() {
   return (
     <div className='h-screen flex items-center justify-center flex-col text-center'>
-        <FreezerCarousel />
+        <FreezersCarousel />
     </div>
   )
 }

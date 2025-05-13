@@ -1,15 +1,19 @@
 import React, { useState, useCallback } from 'react';
-import { Accordion, AccordionContent, AccordionPanel, AccordionTitle } from 'flowbite-react';
-import { editShelf } from '../firebase/firestoreService'
-import ShelfProduct from './ShelfProduct';
-import AddButton from './AddButton';
-import DeleteModal from './DeleteModal';
-import DeleteButton from './DeleteButton';
-import EditModal from './EditModal'
-import EditButton from './EditButton';
-import { useAuth } from '../contexts/AuthContext';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionPanel,
+  AccordionTitle
+} from 'flowbite-react';
 
-export function Shelf({ shelf, freezerId, onDeleteShelf, onAddProduct, onUpdateShelf }) {
+import { editShelf } from 'services/firestoreService';
+import { useAuth }   from 'contexts/AuthContext';
+
+import { ShelfProduct }                   from 'components/feautures/Shelves';
+import { ActionButton }  from 'components/common/Button';
+import { DeleteModal, EditModal }         from 'components/common/Modal';
+
+export default function Shelf({ shelf, freezerId, onDeleteShelf, onAddProduct, onUpdateShelf }) {
   const user = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -46,10 +50,11 @@ export function Shelf({ shelf, freezerId, onDeleteShelf, onAddProduct, onUpdateS
             >
                 <div className='flex flex-row gap-2 items-center'>
                   {shelf.name}
-                  <DeleteButton onClick={() => setShowDeleteModal(true)} />
-                  <EditButton
+                  <ActionButton
                     onClick={() => {setShowEditModal(true); console.log("Edit shelf")}}
+                    action="edit"
                   />
+                  <ActionButton onClick={() => setShowDeleteModal(true)} action="delete"/>
                 </div>
               </AccordionTitle>
               <AccordionContent className='flex flex-col gap-2 cursor-pointer'>
@@ -60,7 +65,7 @@ export function Shelf({ shelf, freezerId, onDeleteShelf, onAddProduct, onUpdateS
                     className='flex flex-row justify-between items-center w-full'
                   />
                 ))}
-                <AddButton label="Product" handleAddition={handleAddProduct} action={"Add"} />
+                <ActionButton label="Product" onClick={handleAddProduct} action="add" />
               </AccordionContent>
           </AccordionPanel>
       </Accordion>

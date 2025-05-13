@@ -1,4 +1,4 @@
-export function FormInput({ type, placeholder, value, onChange, required, }) {
+export default function FormInput({ type, placeholder, value, onChange, required, }) {
     return (
         <input
             type={type}

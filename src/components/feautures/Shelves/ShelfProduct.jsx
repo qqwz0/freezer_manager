@@ -1,6 +1,5 @@
 import React from 'react'
 import { Card } from 'flowbite-react'
-import AddButton from './AddButton'
 
 function ShelfProduct({ children, product }) {
   return (

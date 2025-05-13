@@ -1,15 +1,17 @@
-// Freezer.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext'
-import { Shelf } from './Shelf'
-import { Card } from 'flowbite-react'
-import { getUserFreezerData, createShelf, deleteShelf, deleteFreezer, editFreezer } from '../firebase/firestoreService'
-import AddButton from './AddButton'
-import AddModal from './Modal'
-import DeleteButton from './DeleteButton';
-import EditButton from './EditButton';
-import DeleteModal from './DeleteModal';
-import EditModal from './EditModal';
+import { useAuth } from '../../../contexts/AuthContext';
+import { Shelf } from 'components/feautures/Shelves';
+import { Card } from 'flowbite-react';
+import {
+  getUserFreezerData,
+  createShelf,
+  deleteShelf,
+  deleteFreezer,
+  editFreezer
+} from '../../../firebase/firestoreService';
+import { ActionButton } from 'components/common/Button';
+import { EditModal, DeleteModal } from 'components/common/Modal';
+import { Modal } from 'components/common/Modal';
 
 export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer, onEditFreezer, onEditShelf } ) {
   const user = useAuth();
@@ -57,13 +59,13 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
 
     try {
       const shelfId = await createShelf(user.uid, freezerData.id, shelfName);
-      setFreezerData(prev => ({
-        ...prev,
-        shelves: [
-            ...(Array.isArray(prev.shelves) ? prev.shelves : []),
-            { id: shelfId, name: shelfName, products: [] }
-        ]
-      }));
+      // setFreezerData(prev => ({
+      //   ...prev,
+      //   shelves: [
+      //       ...(Array.isArray(prev.shelves) ? prev.shelves : []),
+      //       { id: shelfId, name: shelfName, products: [] }
+      //   ]
+      // }));
       const updated = {
         ...freezerData,
         shelves: [
@@ -72,11 +74,12 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
         ]
       }
       setFreezerData(updated);
+      onEditFreezer?.(updated);
     } catch (e) {
       console.error(e);
       alert("Error creating shelf. Please try again.");
     }
-  }, [user, freezerData?.id]);
+  }, [user.uid, freezerData, setFreezerData, onEditFreezer]);
 
   //DELETE SHELF
   const handleDeleteShelf = useCallback(async (shelfId) => {
@@ -110,11 +113,13 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
     <div className="container mx-auto p-4">
       <div className='flex justify-center items-center mb-4'>
         <h1 className="text-2xl font-bold text-center mb-4">{freezerData.name}</h1>
-        <EditButton
+        <ActionButton
           onClick={() => {setIsEditModalOpen(true); console.log("Edit freezer")}}
+          action='edit'
         />
-        <DeleteButton
+        <ActionButton
           onClick={() => {setShowDeleteModal(true); console.log("Delete freezer")}}
+          action='delete'
         />
       </div>
       <Card className="max-w-xl mx-auto dark:bg-blue-900">
@@ -129,24 +134,23 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
           ))}
-          <AddButton
+          <ActionButton
             onClick={() => {setIsModalOpen(true);}}
-            label = "Shelf"
-            action={"Add"}
+            label = "Add Shelf"
+            action="submit"
           />
         </div>
       </Card>
 
-      <AddModal
+      <Modal
         show={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        onAdd={(name) => {
+        onAdd={({ name }) => {
           handleAddShelf(name);
           setIsModalOpen(false);
         }}
-        required
-        title="Shelf"
-      ></AddModal>
+        fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
+      ></Modal>
 
       <EditModal
         show={isEditModalOpen}

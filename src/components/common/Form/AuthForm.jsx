@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FormInput } from '../components/FormInput';
-import { SubmitButton } from '../components/SubmitButton';
+import { FormInput } from 'components/common/Form';
+import { ActionButton } from 'components/common/Button';
 import { useNavigate } from 'react-router-dom';
 
 export default function AuthForm({ text, onSubmit }) {
@@ -40,7 +40,7 @@ export default function AuthForm({ text, onSubmit }) {
           onChange={e => setPassword(e.target.value)}
           required
         />
-        <SubmitButton>{text}</SubmitButton>
+        <ActionButton onClick={onSubmit} action="submit">{text}</ActionButton>
       </form>
     </div>
   );

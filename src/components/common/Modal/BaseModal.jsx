@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
 
-export function BaseModal({ show, onClose, header, children, footer }) {
+export default function BaseModal({ show, onClose, header, children, footer }) {
   return (
     <Modal show={show} onClose={onClose}>
       <ModalHeader>{header}</ModalHeader>

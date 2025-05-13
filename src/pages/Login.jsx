@@ -1,6 +1,6 @@
 import React from 'react'
 import { login } from '../firebase/auth'
-import AuthForm from '../components/AuthForm'
+import AuthForm from 'components/common/Form/AuthForm';
 
 function Login() {
   const handleLogin = async (email, password) => {

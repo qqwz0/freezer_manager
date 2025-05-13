@@ -1,9 +1,10 @@
-import React from 'react'
-import { Button } from "flowbite-react";
-import { useState } from 'react'
-import { FormInput } from './FormInput';
-import { BaseModal } from './BaseModal';
-import AddButton from './AddButton';
+import React, { useState }           from 'react';
+import { Button }                    from 'flowbite-react';
+
+import { FormInput }                 from 'components/common/Form';
+import { BaseModal }                 from 'components/common/Modal';
+import { ActionButton }                 from 'components/common/Button';
+
 
 function DeleteModal({ 
     show, 
@@ -17,7 +18,7 @@ function DeleteModal({
             show={show}
             onClose={onClose}
             header={`Delete ${title}`}
-            footer={<AddButton onClick={onDelete} action="Delete">Delete</AddButton>}
+            footer={<ActionButton onClick={onDelete} action="submit" label={title}>Delete</ActionButton>}
         >
             <div className="text-center">
                 <p>Are you sure you want to delete this {title}?</p>

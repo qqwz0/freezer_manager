@@ -1,8 +1,9 @@
-import React from 'react'
-import { Button } from "flowbite-react";
-import { useState, useEffect } from 'react'
-import { FormInput } from './FormInput';
-import { BaseModal } from './BaseModal';
+import React, { useState, useEffect } from 'react';
+import { Button }from 'flowbite-react';
+
+import { FormInput } from 'components/common/Form';
+import { BaseModal } from 'components/common/Modal';
+import { ActionButton } from 'components/common/Button'
 
 function EditModal({ 
     show, 
@@ -32,7 +33,7 @@ function EditModal({
             show={show}
             onClose={onClose}
             header={`Edit ${title}`}
-            footer={<Button onClick={handleSave} className='cursor-pointer'>Save</Button>}
+            footer={<ActionButton onClick={handleSave} action="submit">Save</ActionButton>}
         >
             {fields.map(f => (
                 <div key={f.key} className="mb-4">
