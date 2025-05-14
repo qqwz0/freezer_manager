@@ -74,7 +74,12 @@ export const getUserFreezerData = async (userId) => {
         shelvesSnap.docs.map(async (shelfDoc) => {
           const shelfData = { id: shelfDoc.id, ...shelfDoc.data() }
 
-          const productsSnap = await getDocs(collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves', shelfDoc.id, 'products'))
+           const productsQuery = query(
+            collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves', shelfDoc.id, 'products'),
+            orderBy('createdAt', 'asc')
+          )
+
+          const productsSnap = await getDocs(productsQuery)
           const products = productsSnap.docs.map(p => ({ id: p.id, ...p.data() }))
 
           return { ...shelfData, products }

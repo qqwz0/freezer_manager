@@ -46,7 +46,7 @@ function AddModal({
             type={f.type}
             placeholder={f.placeholder}
             required={f.required}
-            value={f.key === "name" ? name : extra[f.key] || ""}
+            value={f.key === "name" ? name : extraValues[f.key] || ""}
             onChange={e =>
             f.key === "name"
               ? setName(e.target.value)

@@ -129,7 +129,9 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
               key={shelf.id} 
               shelf={shelf} 
               freezerId={freezerData.id}
+              freezerData={freezerData}
               onDeleteShelf={handleDeleteShelf}
+              setFreezerData={setFreezerData}
               onUpdateShelf={onEditShelf}
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
