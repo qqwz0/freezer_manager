@@ -19,12 +19,20 @@ function EditModal({
         setValues(freezerData)
     }, [freezerData, show])
 
+    useEffect(() => {
+    const initialValues = {};
+    fields.forEach(field => {
+        initialValues[field.key] = freezerData[field.key] !== undefined ? freezerData[field.key] : (field.required ? '' : null);
+    });
+    setValues(initialValues);
+    }, [freezerData, show, fields]);
+
     const handleChange = (key, value) => {
         setValues(prev => ({ ...prev, [key]: value}))
     }
 
     const handleSave = () => {
-        onEdit(values);
+        onEdit({...values, id: freezerData.id});
         onClose();
     }   
 

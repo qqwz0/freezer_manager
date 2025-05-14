@@ -1,6 +1,6 @@
 import { firestore } from "services/firebaseConfig";
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from "firebase/firestore";
-
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 // CREATE
 
@@ -112,6 +112,57 @@ export const editShelf = async (userId, freezerId, shelfId, name) => {
     name,
     updatedAt: new Date(),
   });
+};
+
+export const editProduct = async (
+  userId,
+  freezerId,
+  shelfId,
+  productId,
+  updateData // Changed parameter structure for clarity
+) => {
+  // Validate all required IDs
+  if (!userId || !freezerId || !shelfId || !productId) {
+    throw new Error("Missing required document ID parameters");
+  }
+
+  // Ensure all IDs are strings
+  const stringIds = [userId, freezerId, shelfId, productId];
+  if (stringIds.some(id => typeof id !== "string")) {
+    throw new Error("All document IDs must be strings");
+  }
+
+  const productDocRef = doc(
+    firestore,
+    "users", userId,
+    "freezers", freezerId,
+    "shelves", shelfId,
+    "products", productId
+  );
+
+  // Handle date conversions
+  const processDate = (date) => {
+    if (!date) return null;
+    if (date instanceof Date) return Timestamp.fromDate(date);
+    if (date instanceof Timestamp) return date; // In case you're passing Firestore Timestamps
+    return null;
+  };
+
+  const dataToUpdate = {
+    ...updateData,
+    updatedAt: serverTimestamp(), // Now using the imported function
+    freezingDate: processDate(updateData.freezingDate),
+    expirationDate: processDate(updateData.expirationDate),
+  };
+
+  // Remove undefined values
+  Object.keys(dataToUpdate).forEach(key => {
+    if (dataToUpdate[key] === undefined) {
+      delete dataToUpdate[key];
+    }
+  });
+
+  await updateDoc(productDocRef, dataToUpdate);
 };
 
 // DELETE
