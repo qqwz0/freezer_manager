@@ -1,21 +1,21 @@
 import React, { useCallback, useState } from 'react'
 import { Card } from 'flowbite-react'
 import { ActionButton } from 'components/common/Button'
-import { EditModal, DeleteModal } from 'components/common/Modal'
+import { EditModal, DeleteModal, ProductModal } from 'components/common/Modal'
 
 import { editProduct, deleteProduct } from 'services/firestoreService'
 import { useAuth }   from 'contexts/AuthContext';
-
 
 function ShelfProduct({ children, product, freezerData, setFreezerData, onEditProduct, onDeleteProduct }) {
   const user = useAuth()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showProductModal, setShowProductModal] = useState(false)
 
 
   return (
     <>
-    <Card className="w-full text-left">
+    <Card className="w-full text-left" onClick={() => setShowProductModal(true)}>
       <div className="flex justify-between items-center w-full">
         <div className="flex gap-0 items-center">
           <span>{product.name}</span>
@@ -54,8 +54,12 @@ function ShelfProduct({ children, product, freezerData, setFreezerData, onEditPr
       quantity: product.quantity,
       unit: product.unit,
       category: product.category || '', // Handle undefined category
-    freezingDate: product.freezingDate?.toDate?.().toISOString().split('T')[0] || '',
-    expirationDate: product.expirationDate?.toDate?.().toISOString().split('T')[0] || '',
+      freezingDate: product.freezingDate 
+      ? (product.freezingDate.toDate?.().toISOString() || new Date(product.freezingDate).toISOString()).split('T')[0]
+      : '',
+    expirationDate: product.expirationDate 
+      ? (product.expirationDate.toDate?.().toISOString() || new Date(product.expirationDate).toISOString()).split('T')[0]
+      : '',
     }}
     />
 
@@ -64,6 +68,12 @@ function ShelfProduct({ children, product, freezerData, setFreezerData, onEditPr
       onClose={() => setShowDeleteModal(false)} 
       onDelete={onDeleteProduct} 
       title="Product"
+    />
+
+    <ProductModal 
+      show={showProductModal} 
+      onClose={() => setShowProductModal(false)} 
+      product={product}
     />
     </>
   )

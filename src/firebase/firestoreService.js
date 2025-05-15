@@ -80,7 +80,15 @@ export const getUserFreezerData = async (userId) => {
           )
 
           const productsSnap = await getDocs(productsQuery)
-          const products = productsSnap.docs.map(p => ({ id: p.id, ...p.data() }))
+          const products = productsSnap.docs.map(p => {
+            const raw = p.data();
+            return {
+              id: p.id,
+              ...raw,
+              freezingDate: raw.freezingDate?.toDate() || null,
+              expirationDate: raw.expirationDate?.toDate() || null
+            };
+          });
 
           return { ...shelfData, products }
         })
@@ -141,12 +149,22 @@ export const editProduct = async (
   );
 
   // Handle date conversions
-  const processDate = (date) => {
-    if (!date) return null;
-    if (date instanceof Date) return Timestamp.fromDate(date);
-    if (date instanceof Timestamp) return date; // In case you're passing Firestore Timestamps
-    return null;
-  };
+  const processDate = date => {
+  if (!date) return null;
+
+  if (typeof date === 'string') {
+    // parse "YYYY-MM-DD" into a Date
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime())
+      ? null
+      : Timestamp.fromDate(parsed);
+  }
+
+  if (date instanceof Date)        return Timestamp.fromDate(date);
+  if (date instanceof Timestamp)   return date;
+
+  return null;
+};
 
   const dataToUpdate = {
     ...updateData,

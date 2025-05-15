@@ -34,7 +34,10 @@ export default function ActionButton({action, onClick, children, label}) {
     return (
         <Button
         type="submit"
-        onClick={onClick}
+        onClick={e => {
+            e.stopPropagation(); 
+            onClick?.(e);
+          }}
         className=""
       >
         {children} {label && label}
@@ -45,7 +48,10 @@ export default function ActionButton({action, onClick, children, label}) {
         <Button 
         className='w-full shadow-lg cursor-pointer' 
         color="blue" 
-        onClick={onClick}
+        onClick={e => {
+            e.stopPropagation();  
+            onClick?.(e);
+          }}
         >
          Create {label}
         </Button>
@@ -55,7 +61,10 @@ export default function ActionButton({action, onClick, children, label}) {
   return (
     <button
         type='button'
-        onClick={onClick}
+        onClick={e => {
+            e.stopPropagation();  
+            onClick?.(e);
+          }}
         aria-label={action}
         className='p-1 focus:outline-none'
     >

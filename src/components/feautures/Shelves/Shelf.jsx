@@ -30,7 +30,9 @@ export default function Shelf({ shelf, freezerId, freezerData, onDeleteShelf, se
     if (!product || !shelf?.id) return;
 
     try { 
-      const productId = await createProduct(user.uid, freezerId, shelf.id, product.name, product.quantity, product.unit, product.category, product.freezingDate, product.expirationDate);
+      const freezingDateObj = product.freezingDate ? new Date(product.freezingDate) : null;
+      const expirationDateObj = product.expirationDate ? new Date(product.expirationDate) : null; 
+      const productId = await createProduct(user.uid, freezerId, shelf.id, product.name, product.quantity, product.unit, product.category, freezingDateObj, expirationDateObj);
       const updated = {
         ...freezerData,
         shelves: freezerData.shelves.map(s => {
@@ -81,12 +83,12 @@ const handleEditProduct = useCallback(
               ? {
                   ...p,
                   ...updatedProduct,
-                  freezingDate:
-                    updatedProduct.freezingDate?.toDate?.() ||
-                    updatedProduct.freezingDate,
-                  expirationDate:
-                    updatedProduct.expirationDate?.toDate?.() ||
-                    updatedProduct.expirationDate
+                  freezingDate: typeof updatedProduct.freezingDate === 'string'
+                    ? new Date(updatedProduct.freezingDate)
+                    : updatedProduct.freezingDate,
+                  expirationDate: typeof updatedProduct.expirationDate === 'string'
+                    ? new Date(updatedProduct.expirationDate)
+                    : updatedProduct.expirationDate
                 }
               : p
           )
@@ -106,12 +108,12 @@ const handleEditProduct = useCallback(
                       // створюємо новий об’єкт продукту з новими полями
                       ...p,
                       ...updatedProduct,
-                      freezingDate:
-                        updatedProduct.freezingDate?.toDate?.() ||
-                        updatedProduct.freezingDate,
-                      expirationDate:
-                        updatedProduct.expirationDate?.toDate?.() ||
-                        updatedProduct.expirationDate,
+                      freezingDate: typeof updatedProduct.freezingDate === 'string'
+                        ? new Date(updatedProduct.freezingDate)
+                        : updatedProduct.freezingDate,
+                      expirationDate: typeof updatedProduct.expirationDate === 'string'
+                        ? new Date(updatedProduct.expirationDate)
+                        : updatedProduct.expirationDate,
                     }
                   : p
               )
@@ -122,14 +124,14 @@ const handleEditProduct = useCallback(
         });
 
         // 3) Закриваємо модалку
-        setShowEditModal(false);
+        console.log(updatedProduct.freezingDate)
       } catch (e) {
         console.error('Product update failed:', e);
         alert(`Error editing product: ${e.message}`);
       }
     },
     // Видаляємо shelf.id із залежностей — воно вже приходить в аргумент
-    [user?.uid, freezerId, setFreezerData]
+    [user?.uid, freezerId, shelf.id, setFreezerData]
   );
 
   const handleDeleteProduct = useCallback(
@@ -182,8 +184,6 @@ const handleEditProduct = useCallback(
       alert('Error updating shelf. Please try again.')
     }
   }, [user.uid, freezerId, shelf.id, onUpdateShelf])
-
-  console.log("Shelf data:", shelf);
 
   return (
     <>
