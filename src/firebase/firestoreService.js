@@ -2,6 +2,10 @@ import { firestore } from "services/firebaseConfig";
 import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from "firebase/firestore";
 import { serverTimestamp, Timestamp } from "firebase/firestore";
 
+import { uploadToCloudinary } from "services/cloudinary";
+import { generateQRBlob }      from "services/qr";
+
+
 // CREATE
 
 export const createFreezer = async (userId, name) => {
@@ -21,33 +25,50 @@ export const createShelf = async (userId, freezerId, name = "") => {
 };
 
 export const createProduct = async (
-  userId,
-  freezerId,
-  shelfId,
-  productName,
-  quantity = 0,
-  unit = "",
-  category = "",
-  freezingDate = null,
-  expirationDate = null
+  userId, freezerId, shelfId,
+  productName, quantity = 0, unit = "",
+  category = "", freezingDate = null,
+  expirationDate = null,
+  photoFile = null             // ← new parameter: a File/Blob from an <input type="file" />
 ) => {
   if (!productName) throw new Error("Product name is required");
-  
+
+  console.log("photoFile:", photoFile);
+
+
+  // 1) upload photo
+  let photoUrl = "";
+  if (photoFile) {
+    photoUrl = await uploadToCloudinary(photoFile);
+  }
+
+  // 2) generate & upload QR
+  const qrBlob   = await generateQRBlob(productName + "|" + Date.now());
+  const qrUrl    = await uploadToCloudinary(qrBlob);
+
+  // 3) build your Firestore data
   const productData = {
-    name: productName,
-    quantity,
-    unit,
-    category,
-    createdAt: new Date(),
-    freezingDate: freezingDate instanceof Date ? freezingDate : null,
-    expirationDate: expirationDate instanceof Date ? expirationDate : null,
+    name:             productName,
+    quantity, unit, category,
+    createdAt:        new Date(),
+    freezingDate:     freezingDate instanceof Date ? freezingDate : null,
+    expirationDate:   expirationDate instanceof Date ? expirationDate : null,
+    photoUrl,          
+    qrCodeUrl:         qrUrl,
   };
 
   const productRef = await addDoc(
-    collection(firestore, "users", userId, "freezers", freezerId, "shelves", shelfId, "products"),
+    collection(
+      firestore,
+      "users", userId,
+      "freezers", freezerId,
+      "shelves", shelfId,
+      "products"
+    ),
     productData
   );
-  return productRef.id;
+
+  return {id: productRef.id, photoUrl, qrCodeUrl: qrUrl};
 };
 
 // READ
@@ -127,18 +148,65 @@ export const editProduct = async (
   freezerId,
   shelfId,
   productId,
-  updateData // Changed parameter structure for clarity
+  updateData = {}
 ) => {
-  // Validate all required IDs
   if (!userId || !freezerId || !shelfId || !productId) {
     throw new Error("Missing required document ID parameters");
   }
 
-  // Ensure all IDs are strings
-  const stringIds = [userId, freezerId, shelfId, productId];
-  if (stringIds.some(id => typeof id !== "string")) {
-    throw new Error("All document IDs must be strings");
+  // Extract file and QR flag; support both photoFile and legacy picture key
+  const { photoFile, picture, regenerateQr, ...rest } = updateData;
+  // normalize file object
+  const fileToUpload = photoFile || picture;
+
+  // Prepare update payload
+  const dataToUpdate = {
+    ...rest,
+    updatedAt: serverTimestamp(),
+  };
+
+  // Handle date conversions
+  const processDate = date => {
+    if (!date) return null;
+    if (typeof date === 'string') {
+      const parsed = new Date(date);
+      return isNaN(parsed.getTime()) ? null : Timestamp.fromDate(parsed);
+    }
+    if (date instanceof Date) return Timestamp.fromDate(date);
+    if (date instanceof Timestamp) return date;
+    return null;
+  };
+
+  if ('freezingDate' in rest) {
+    dataToUpdate.freezingDate = processDate(rest.freezingDate);
   }
+  if ('expirationDate' in rest) {
+    dataToUpdate.expirationDate = processDate(rest.expirationDate);
+  }
+
+  // Upload new photo if provided
+  if (fileToUpload) {
+    const photoUrl = await uploadToCloudinary(fileToUpload);
+    dataToUpdate.photoUrl = photoUrl;
+  }
+
+  // Regenerate QR code if requested
+  if (regenerateQr) {
+    const qrBlob = await generateQRBlob(`${productId}|${Date.now()}`);
+    const qrUrl = await uploadToCloudinary(qrBlob);
+    dataToUpdate.qrCodeUrl = qrUrl;
+  }
+
+  // Clean undefined or unsupported
+  Object.keys(dataToUpdate).forEach(key => {
+    if (
+      dataToUpdate[key] === undefined ||
+      dataToUpdate[key] instanceof File ||
+      dataToUpdate[key] instanceof Blob
+    ) {
+      delete dataToUpdate[key];
+    }
+  });
 
   const productDocRef = doc(
     firestore,
@@ -148,40 +216,11 @@ export const editProduct = async (
     "products", productId
   );
 
-  // Handle date conversions
-  const processDate = date => {
-  if (!date) return null;
-
-  if (typeof date === 'string') {
-    // parse "YYYY-MM-DD" into a Date
-    const parsed = new Date(date);
-    return isNaN(parsed.getTime())
-      ? null
-      : Timestamp.fromDate(parsed);
-  }
-
-  if (date instanceof Date)        return Timestamp.fromDate(date);
-  if (date instanceof Timestamp)   return date;
-
-  return null;
-};
-
-  const dataToUpdate = {
-    ...updateData,
-    updatedAt: serverTimestamp(), // Now using the imported function
-    freezingDate: processDate(updateData.freezingDate),
-    expirationDate: processDate(updateData.expirationDate),
-  };
-
-  // Remove undefined values
-  Object.keys(dataToUpdate).forEach(key => {
-    if (dataToUpdate[key] === undefined) {
-      delete dataToUpdate[key];
-    }
-  });
-
   await updateDoc(productDocRef, dataToUpdate);
 };
+
+// DELETE functions remain unchanged...
+
 
 // DELETE
 

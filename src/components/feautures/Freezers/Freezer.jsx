@@ -1,113 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { Shelf } from 'components/feautures/Shelves';
 import { Card } from 'flowbite-react';
-import {
-  getUserFreezerData,
-  createShelf,
-  deleteShelf,
-  deleteFreezer,
-  editFreezer
-} from '../../../firebase/firestoreService';
-import { ActionButton } from 'components/common/Button';
-import { EditModal, DeleteModal } from 'components/common/Modal';
-import { Modal } from 'components/common/Modal';
 
-export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer, onEditFreezer, onEditShelf } ) {
-  const user = useAuth();
+import { ActionButton } from 'components/common/Button';
+import { EditModal, DeleteModal, Modal } from 'components/common/Modal';
+import { Shelf } from 'components/feautures/Shelves';
+
+export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, onAddShelf, onUpdateShelf, onRemoveShelf, onAddProduct, onUpdateProduct, onRemoveProduct } ) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-
-  // UPDATE FREEZER DATA
-  const handleEditFreezer = useCallback(async ({ name }) => {
-    try {
-      await editFreezer(user.uid, freezerData.id, name);
-      setFreezerData(prev => ({ ...prev, name: name }));
-
-      const updated = {
-        ...freezerData,
-        name: name
-      }
-
-      setFreezerData(updated);
-      onEditFreezer?.(updated); // carousel state update
-      setIsEditModalOpen(false);
-    } catch (e) {
-      console.error(e);
-      alert('Error updating freezer. Please try again.');
-    }
-  }, [user.uid, freezerData.id, setFreezerData]);
-
-  // DELETE FREEZER
-  const handleDeleteFreezer = useCallback(async () => {
-    if (!freezerData?.id) return;
-    
-    try {
-      await deleteFreezer(user.uid, freezerData.id);
-      onDeleteFreezer(freezerData.id);
-    } catch (e) {
-      console.error(e);
-      alert("Error deleting freezer. Please try again.");
-    }
-  }, [user, freezerData?.id, onDeleteFreezer]);
-
-  // ADD SHELF
-  const handleAddShelf = useCallback(async (shelfName) => {
-    if (!shelfName || !freezerData?.id) return;
-
-    try {
-      const shelfId = await createShelf(user.uid, freezerData.id, shelfName);
-      // setFreezerData(prev => ({
-      //   ...prev,
-      //   shelves: [
-      //       ...(Array.isArray(prev.shelves) ? prev.shelves : []),
-      //       { id: shelfId, name: shelfName, products: [] }
-      //   ]
-      // }));
-      const updated = {
-        ...freezerData,
-        shelves: [
-          ...freezerData.shelves,
-          { id: shelfId, name: shelfName, products: []}
-        ]
-      }
-      setFreezerData(updated);
-      onEditFreezer?.(updated);
-    } catch (e) {
-      console.error(e);
-      alert("Error creating shelf. Please try again.");
-    }
-  }, [user.uid, freezerData, setFreezerData, onEditFreezer]);
-
-  //DELETE SHELF
-  const handleDeleteShelf = useCallback(async (shelfId) => {
-    try {
-      await deleteShelf(user.uid, freezerData.id, shelfId);
-      setFreezerData(prev => ({
-        ...prev, 
-        shelves: prev.shelves.filter(shelf => shelf.id !== shelfId)
-      }));
-      const updated = {
-        ...freezerData,
-        shelves: freezerData.shelves.filter(shelf => shelf.id !== shelfId)
-      }
-      setFreezerData(updated);
-    } catch (e) {
-      console.error(e);
-      alert("Error deleting shelf. Please try again.");
-    }
-  })
-
-  const confirmDeleteFreezer = () => {
-    handleDeleteFreezer();
-    setShowDeleteModal(false);
-  }
-
-  if (!freezerData || !freezerData.shelves) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="container mx-auto p-4">
@@ -130,9 +31,11 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
               shelf={shelf} 
               freezerId={freezerData.id}
               freezerData={freezerData}
-              onDeleteShelf={handleDeleteShelf}
-              setFreezerData={setFreezerData}
-              onUpdateShelf={onEditShelf}
+              onRemoveShelf={onRemoveShelf}
+              onUpdateShelf={onUpdateShelf}
+              onAddProduct={onAddProduct}
+              onUpdateProduct={onUpdateProduct}
+              onRemoveProduct={onRemoveProduct}
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
           ))}
@@ -148,7 +51,7 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
         show={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onAdd={({ name }) => {
-          handleAddShelf(name);
+          onAddShelf(name);
           setIsModalOpen(false);
         }}
         fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
@@ -157,7 +60,10 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
       <EditModal
         show={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onEdit={handleEditFreezer}
+        onEdit={data => {
+          onEditFreezer(data.name);
+          setIsEditModalOpen(false);
+        }}
         title="Freezer"
         fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
         freezerData={{ name: freezerData.name }}
@@ -166,7 +72,7 @@ export default function Freezer( { freezerData, setFreezerData, onDeleteFreezer,
       <DeleteModal
         show={showDeleteModal} 
         onClose={() => setShowDeleteModal(false)} 
-        onDelete={confirmDeleteFreezer} 
+        onDelete={freezerId => {onDeleteFreezer(freezerId); setShowDeleteModal(false)}} 
         title="Freezer"
       />
     </div>

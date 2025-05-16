@@ -1,87 +1,33 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Swiper, SwiperSlide }           from 'swiper/react';
-import { Navigation }         from 'swiper/modules';
+import React, { useState } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-
-import { getUserFreezerData, deleteFreezer, createFreezer }
-  from 'services/firestoreService';
-import { useAuth } from 'contexts/AuthContext';
 
 import { ActionButton } from 'components/common/Button';
 import { Modal } from 'components/common/Modal';
-import { Freezer } from 'components/feautures/Freezers';
-
-import 'swiper/css';
-import 'swiper/css/navigation';
+import { Freezer, useFreezers } from 'components/feautures/Freezers';
 
 export default function FreezerCarousel() {
-    const [freezers, setFreezers] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    
-    const user = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const { 
+    freezers,
+    loading,
+    error,
+    addFreezer,
+    updateFreezer,
+    deleteFreezer,
+    addShelf,
+    updateShelf,
+    removeShelf,
+    addProduct,
+    updateProduct,
+    removeProduct
+  } = useFreezers();
 
-    useEffect(() => {
-        if (!user) return;
-    
-        const fetchData = async () => {
-          try {
-            const data = await getUserFreezerData(user.uid);
-            setFreezers(Array.isArray(data) ? data : [data]);
-          } catch (error) {
-            console.error("Error fetching freezer data:", error);
-          }
-        };
-    
-        fetchData();
-      }, [user]);
-
-      const handleUpdateOneFreezer = useCallback((updatedFreezer) => {
-        setFreezers(prev => 
-          prev.map(f => f.id === updatedFreezer.id ? updatedFreezer : f)
-        )
-      })
-
-      const handleAddFreezer = useCallback(async (name) => {
-        if (!name) return;
-
-        try {
-          const newId = await createFreezer(user.uid, name);
-          const newFreezer = {
-            id: newId,
-            name: name.trim(),
-            shelves: [],
-          }
-          setFreezers(prev => [...prev, newFreezer]);
-        } catch (e) {
-          console.error(e);
-          alert("Error creating freezer. Please try again.");
-        }
-      }, [user])
-
-      const handleDeleteFreezer = useCallback((freezerId) => {
-        setFreezers(prev => prev.filter(f => f.id !== freezerId))
-      }, []);
-
-      const handleUpdateShelf = useCallback(
-        (freezerId, shelfId, newName) => {
-          setFreezers(prevFreezers =>
-            prevFreezers.map(freezer =>
-              freezer.id === freezerId
-                ? {
-                    ...freezer,
-                    shelves: freezer.shelves.map(s =>
-                      s.id === shelfId
-                        ? { ...s, name: newName }
-                        : s
-                    )
-                  }
-                : freezer
-            )
-          );
-        },
-        [setFreezers]
-      );
+  if (loading) return <div>Loading…</div>;
+  if (error)   return <div>Error: {error.message}</div>;
 
   return (
     <>
@@ -99,11 +45,16 @@ export default function FreezerCarousel() {
       >
         {freezers.map((fr) => (
           <SwiperSlide key={fr.id}>
-            <Freezer freezerData={fr} 
-            setFreezerData={handleUpdateOneFreezer}
-            onDeleteFreezer={handleDeleteFreezer}
-            onEditFreezer={handleUpdateOneFreezer}
-            onEditShelf={handleUpdateShelf}
+            <Freezer 
+              freezerData={fr} 
+              onDeleteFreezer={() => deleteFreezer(fr.id)}
+              onEditFreezer={newName => updateFreezer(fr.id, newName)}
+              onAddShelf={shelfName => addShelf(fr.id, shelfName)}
+              onUpdateShelf={(shelfId, newName) => updateShelf(fr.id, shelfId, newName)}
+              onRemoveShelf={shelfId => removeShelf(fr.id, shelfId)}
+              onAddProduct={(shelfId, product) => addProduct(fr.id, shelfId, product)}
+              onUpdateProduct={(shelfId, productId, newProduct) => updateProduct(fr.id, shelfId, productId, newProduct)}
+              onRemoveProduct={(shelfId, productId) => removeProduct(fr.id, shelfId, productId)}
             />
           </SwiperSlide>
         ))}
@@ -115,7 +66,7 @@ export default function FreezerCarousel() {
       <Modal 
         show={isModalOpen} 
         onClose={() => {setIsModalOpen(false)}} 
-        onAdd={({ name }) => {handleAddFreezer(name); setIsModalOpen(false)}}
+        onAdd={({ name }) => {addFreezer(name); setIsModalOpen(false)}}
         fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
       />
     </>

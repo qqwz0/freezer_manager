@@ -27,6 +27,7 @@ function AddModal({
     onClose();
   };
 
+  
   return (
     <BaseModal
       show={show}
@@ -41,6 +42,14 @@ function AddModal({
       {fields.map(f => (
         <div key={f.key} className="mb-4">
           <label className="block mb-1 font-medium">{f.label}</label>
+
+          {f.type === "file" ? (
+            <FormInput 
+            type="file"
+            accept="image/*"
+            onChange={e => {handleChange(f.key, e.target.files[0]); console.log("He;", e.target.files[0])}}
+            />
+          ) : (
           <FormInput
             key={f.key}
             type={f.type}
@@ -53,6 +62,7 @@ function AddModal({
               : handleChange(f.key, e.target.value)
           }
           />
+        )}
         </div>
       ))}
     </BaseModal>
