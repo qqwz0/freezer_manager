@@ -1,30 +1,20 @@
 import React from 'react'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
 import { Timestamp } from 'firebase/firestore';
+import { formatYMD } from 'shared/utils';
 
-function ProductModal({show, onClose, product}) {;
-    function formatYMD(value) {
-        // якщо нічого немає — повертаємо пустий рядок
-        if (value === null || value === undefined || value === '') {
-            return '';
+function ProductModal({show, onClose, product}) {
+
+    console.log("ProductModal", product);
+
+    function getImageSrc(image) {
+        if (!image) return null;
+        if (typeof image === 'string') return image;
+        if (image instanceof File) {
+            return URL.createObjectURL(image);
         }
-
-        // отримуємо JS-Date
-        const date = value instanceof Timestamp
-            ? value.toDate()
-            : (value instanceof Date
-                ? value
-                : new Date(value)
-            );
-
-        // якщо дата некоректна — пустий рядок
-        if (isNaN(date.getTime())) {
-            return '';
-        }
-
-        // інакше — у форматі YYYY-MM-DD
-        return date.toISOString().split('T')[0];
-        }
+        return null;
+    }
 
     return (
     <Modal show={show} onClose={onClose}>
@@ -42,7 +32,7 @@ function ProductModal({show, onClose, product}) {;
                     : ''}
                 </li>
                 <li>Picture: <img
-                    src={product.photoUrl}
+                    src={getImageSrc(product.photoUrl)}
                     alt="QR Code"
                     className="w-10 h-10 rounded-full"
                     />

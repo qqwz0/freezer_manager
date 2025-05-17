@@ -12,7 +12,10 @@ export default defineConfig({
       // Тепер 'components' буде вказувати на src/components
       'components': path.resolve(__dirname, 'src/components'),
       'contexts':   path.resolve(__dirname, 'src/contexts'),
-      'services':   path.resolve(__dirname, 'src/firebase')
+      'services':   path.resolve(__dirname, 'src/firebase'),
+      'auth':        path.resolve(__dirname, 'src/auth'),
+      'freezers':    path.resolve(__dirname, 'src/freezers'),
+      'shared':      path.resolve(__dirname, 'src/shared'),
     },
 },
 });

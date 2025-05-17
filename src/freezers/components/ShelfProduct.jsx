@@ -3,44 +3,12 @@ import { Card } from 'flowbite-react'
 import { ActionButton, FormModal } from 'shared/ui'
 import { useModal } from 'shared/hooks'
 import { ProductModal } from 'freezers/components'
+import { formatYMD } from '../../shared/utils'
 
 function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
   const [showProductModal, setShowProductModal] = useState(false)
 
   const {config, open, close} = useModal();
-
-  const formatIsoDate = value => {
-    // handle null, undefined, or empty string
-    if (value === null || value === undefined || value === '') {
-      return '';
-    }
-
-    // Firestore Timestamp (has toDate())
-    if (typeof value.toDate === 'function') {
-      const d = value.toDate();
-      return isNaN(d.getTime())
-        ? ''
-        : d.toISOString().split('T')[0];
-    }
-
-    // JavaScript Date
-    if (value instanceof Date) {
-      return isNaN(value.getTime())
-        ? ''
-        : value.toISOString().split('T')[0];
-    }
-
-    // String (try parsing)
-    if (typeof value === 'string') {
-      const d = new Date(value);
-      return isNaN(d.getTime())
-        ? ''
-        : d.toISOString().split('T')[0];
-    }
-
-    // anything else
-    return '';
-  };
 
 
   return (
@@ -51,6 +19,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
           <span>{product.name}</span>
           <ActionButton
             onClick={() =>
+                      console.log("Edit product: ", product) ||
                       open({
                         mode: 'edit',
                         title: "Product",
@@ -59,7 +28,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
                           { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true },
                           { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
                           { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
-                          { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
+                          { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
                           { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
                           { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
                           { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
@@ -70,8 +39,9 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
                           quantity:       product.quantity,
                           unit:           product.unit,
                           category:       product.category || '',
-                          freezingDate:   formatIsoDate(product.freezingDate),
-                          expirationDate: formatIsoDate(product.expirationDate),
+                          freezingDate:   formatYMD(product.freezingDate),
+                          expirationDate: formatYMD(product.expirationDate),
+                          photoUrl:   product.photoUrl || '',
                         }
                       })
                     }

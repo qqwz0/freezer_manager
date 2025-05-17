@@ -155,9 +155,9 @@ export const editProduct = async (
   }
 
   // Extract file and QR flag; support both photoFile and legacy picture key
-  const { photoFile, picture, regenerateQr, ...rest } = updateData;
+  const { photoFile, picture, photoUrl, regenerateQr, ...rest } = updateData;
   // normalize file object
-  const fileToUpload = photoFile || picture;
+  const fileToUpload = photoFile || picture || photoUrl || null;
 
   // Prepare update payload
   const dataToUpdate = {
@@ -186,8 +186,8 @@ export const editProduct = async (
 
   // Upload new photo if provided
   if (fileToUpload) {
-    const photoUrl = await uploadToCloudinary(fileToUpload);
-    dataToUpdate.photoUrl = photoUrl;
+    const uploadedUrl = await uploadToCloudinary(fileToUpload);
+    dataToUpdate.photoUrl = uploadedUrl;
   }
 
   // Regenerate QR code if requested
@@ -218,9 +218,6 @@ export const editProduct = async (
 
   await updateDoc(productDocRef, dataToUpdate);
 };
-
-// DELETE functions remain unchanged...
-
 
 // DELETE
 
