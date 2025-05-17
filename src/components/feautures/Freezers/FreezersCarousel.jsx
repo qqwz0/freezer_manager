@@ -5,11 +5,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 import { ActionButton } from 'components/common/Button';
-import { Modal } from 'components/common/Modal';
+import { Modal, FormModal } from 'components/common/Modal';
 import { Freezer, useFreezers } from 'components/feautures/Freezers';
+import { useModal } from 'components/common/Modal';
 
 export default function FreezerCarousel() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { config, open, close } = useModal();
   
   const { 
     freezers,
@@ -59,15 +60,31 @@ export default function FreezerCarousel() {
           </SwiperSlide>
         ))}
           <SwiperSlide>
-            <ActionButton label="Freezer" onClick={() => setIsModalOpen(true)} action="add" className="w-1/5"/>
+            <ActionButton 
+              label="Freezer" 
+              onClick={() =>
+                  open({
+                    mode: 'add',
+                    title: "Freezer",
+                    onSubmit: ({ name }) => {addFreezer(name)},
+                    fields: [
+                      { key: 'name', label: 'Frezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+                    ],
+                  })
+                }
+              action="add" 
+              className="w-1/5"/>
           </SwiperSlide>
       </Swiper>
 
-      <Modal 
-        show={isModalOpen} 
-        onClose={() => {setIsModalOpen(false)}} 
-        onAdd={({ name }) => {addFreezer(name); setIsModalOpen(false)}}
-        fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
+      <FormModal
+              show={config.mode !== null}
+              mode={config.mode}
+              title={config.title}
+              fields={config.fields}
+              initialData={config.initialData}
+              onSubmit={config.onSubmit}
+              onClose={close}
       />
     </>
   );

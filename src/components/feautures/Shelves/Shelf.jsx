@@ -7,13 +7,11 @@ import {
 } from 'flowbite-react';
 
 import { ActionButton } from 'components/common/Button';
-import { DeleteModal, EditModal, Modal } from 'components/common/Modal';
+import { DeleteModal, EditModal, Modal, FormModal, useModal } from 'components/common/Modal';
 import { ShelfProduct } from 'components/feautures/Shelves';
 
 export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { config, open, close } = useModal();
 
   return (
     <>
@@ -25,10 +23,29 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                 <div className='flex flex-row gap-2 items-center'>
                   {shelf.name}
                   <ActionButton
-                    onClick={() => {setShowEditModal(true); console.log("Edit shelf")}}
+                    onClick={() =>
+                      open({
+                        mode: 'edit',
+                        title: "Shelf",
+                        onSubmit: ({ name }) => onUpdateShelf(shelf.id, name),
+                        fields: [
+                          { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
+                        ],
+                        initialData: { name: shelf.name }
+                      })
+                    }
                     action="edit"
                   />
-                  <ActionButton onClick={() => setShowDeleteModal(true)} action="delete"/>
+                  <ActionButton 
+                    onClick={() =>
+                      open({
+                        mode: 'delete',
+                        title: "Shelf",
+                        onSubmit: () => onRemoveShelf(shelf.id),
+                      })
+                    }
+                    action="delete"
+                  />
                 </div>
               </AccordionTitle>
               <AccordionContent className='flex flex-col gap-2 cursor-pointer'>
@@ -43,42 +60,38 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                     className='flex flex-row justify-between items-center w-full'
                   />
                 ))}
-                <ActionButton label="Product" onClick={() => setIsModalOpen(true)} action="add" />
+                <ActionButton 
+                  label="Product" 
+                  onClick={() =>
+                      open({
+                        mode: 'add',
+                        title: "Product",
+                        onSubmit: (product) => onAddProduct(shelf.id, product),
+                        fields: [
+                          { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
+                          { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
+                          { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
+                          { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
+                          { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
+                          { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
+                          { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
+                        ],
+                      })
+                    }
+                  action="add" 
+                />
               </AccordionContent>
           </AccordionPanel>
       </Accordion>
 
-      <DeleteModal
-        show={showDeleteModal} 
-        onClose={() => setShowDeleteModal(false)} 
-        onDelete={() => onRemoveShelf(shelf.id)}
-        title="Shelf"
-      />
-
-      <EditModal
-        show={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onEdit={({ name }) => onUpdateShelf(shelf.id, name)}
-        title="Shelf"
-        fields={[
-          { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true },
-        ]}
-        freezerData={{ name: shelf.name }}
-      />
-
-      <Modal 
-        show={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAdd={(product) => onAddProduct(shelf.id, product)}
-        fields={[
-          { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
-          { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-          { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
-          { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-          { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
-          { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
-          { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-        ]}
+      <FormModal
+        show={config.mode !== null}
+        mode={config.mode}
+        title={config.title}
+        fields={config.fields}
+        initialData={config.initialData}
+        onSubmit={config.onSubmit}
+        onClose={close}
       />
     </>
   )

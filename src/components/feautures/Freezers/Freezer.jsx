@@ -2,24 +2,38 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'flowbite-react';
 
 import { ActionButton } from 'components/common/Button';
-import { EditModal, DeleteModal, Modal } from 'components/common/Modal';
+import { EditModal, DeleteModal, Modal, FormModal, useModal } from 'components/common/Modal';
 import { Shelf } from 'components/feautures/Shelves';
 
 export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, onAddShelf, onUpdateShelf, onRemoveShelf, onAddProduct, onUpdateProduct, onRemoveProduct } ) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { config, open, close } = useModal();
 
   return (
     <div className="container mx-auto p-4">
       <div className='flex justify-center items-center mb-4'>
-        <h1 className="text-2xl font-bold text-center mb-4">{freezerData.name}</h1>
+        <h1 className="text-2xl font-bold text-center">{freezerData.name}</h1>
         <ActionButton
-          onClick={() => {setIsEditModalOpen(true); console.log("Edit freezer")}}
+          onClick={() =>
+            open({
+              mode: 'edit',
+              title: "Freezer",
+              onSubmit: data => { onEditFreezer(data.name); },
+              fields: [
+                { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+              ],
+              initialData: { name: freezerData.name }
+            })
+          }
           action='edit'
         />
         <ActionButton
-          onClick={() => {setShowDeleteModal(true); console.log("Delete freezer")}}
+          onClick={() =>
+            open({
+              mode: 'delete',
+              title: "Freezer",
+              onSubmit: freezerId => {onDeleteFreezer(freezerId)},
+            })
+          }
           action='delete'
         />
       </div>
@@ -40,40 +54,30 @@ export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, 
             />
           ))}
           <ActionButton
-            onClick={() => {setIsModalOpen(true);}}
+            onClick={() =>
+            open({
+              mode: 'add',
+              title: "Shelf",
+              onSubmit: ({ name }) => { onAddShelf(name) },
+              fields: [
+                { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
+              ],
+            })
+          }
             label = "Add Shelf"
             action="submit"
           />
         </div>
       </Card>
 
-      <Modal
-        show={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
-        onAdd={({ name }) => {
-          onAddShelf(name);
-          setIsModalOpen(false);
-        }}
-        fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
-      ></Modal>
-
-      <EditModal
-        show={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onEdit={data => {
-          onEditFreezer(data.name);
-          setIsEditModalOpen(false);
-        }}
-        title="Freezer"
-        fields={[{ key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }]}
-        freezerData={{ name: freezerData.name }}
-      />
-
-      <DeleteModal
-        show={showDeleteModal} 
-        onClose={() => setShowDeleteModal(false)} 
-        onDelete={freezerId => {onDeleteFreezer(freezerId); setShowDeleteModal(false)}} 
-        title="Freezer"
+      <FormModal
+        show={config.mode !== null}
+        mode={config.mode}
+        title={config.title}
+        fields={config.fields}
+        initialData={config.initialData}
+        onSubmit={config.onSubmit}
+        onClose={close}
       />
     </div>
   );

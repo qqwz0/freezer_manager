@@ -1,15 +1,15 @@
 import React, { useCallback, useState } from 'react'
 import { Card } from 'flowbite-react'
 import { ActionButton } from 'components/common/Button'
-import { EditModal, DeleteModal, ProductModal } from 'components/common/Modal'
+import { EditModal, DeleteModal, ProductModal, FormModal, useModal } from 'components/common/Modal'
 
 import { editProduct, deleteProduct } from 'services/firestoreService'
 import { useAuth }   from 'contexts/AuthContext';
 
 function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
   const [showProductModal, setShowProductModal] = useState(false)
+
+  const {config, open, close} = useModal();
 
   const formatIsoDate = value => {
     // handle null, undefined, or empty string
@@ -52,11 +52,41 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
         <div className="flex gap-0 items-center">
           <span>{product.name}</span>
           <ActionButton
-            onClick={() => setShowEditModal(true)}
+            onClick={() =>
+                      open({
+                        mode: 'edit',
+                        title: "Product",
+                        onSubmit: (product) => {onUpdateProduct(shelfId, product.id, product)},
+                        fields: [
+                          { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true },
+                          { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
+                          { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
+                          { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
+                          { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
+                          { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
+                          { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
+                        ],
+                        initialData: {
+                          id:             product.id,
+                          name:           product.name,
+                          quantity:       product.quantity,
+                          unit:           product.unit,
+                          category:       product.category || '',
+                          freezingDate:   formatIsoDate(product.freezingDate),
+                          expirationDate: formatIsoDate(product.expirationDate),
+                        }
+                      })
+                    }
             action="edit"
           />
           <ActionButton
-            onClick={() => setShowDeleteModal(true)}
+            onClick={() =>
+              open({
+                mode: 'delete',
+                title: "Product",
+                onSubmit: () => {onRemoveProduct(shelfId, product.id,)},
+              })
+            }
             action="delete"
           />
         </div>
@@ -67,46 +97,20 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
       </div>
     </Card>
 
-    <EditModal
-      show={showEditModal}
-      onClose={() => setShowEditModal(false)}
-      onEdit={(product) => {console.log('raw freezingDate:', product.freezingDate);
-console.log('raw expirationDate:', product.expirationDate); onUpdateProduct(shelfId, product.id, product); setShowEditModal(false)}}
-      title="Product"
-      fields={[
-        { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true },
-        { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-        { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
-        { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-        { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
-        { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
-        { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-      ]}
-      freezerData={{
-        id:             product.id,
-        name:           product.name,
-        quantity:       product.quantity,
-        unit:           product.unit,
-        category:       product.category || '',
-        freezingDate:   formatIsoDate(product.freezingDate),
-        expirationDate: formatIsoDate(product.expirationDate),
-      }}
-    />
-
-    <DeleteModal
-      show={showDeleteModal} 
-      onClose={() => setShowDeleteModal(false)} 
-      onDelete={() => {
-        onRemoveProduct(shelfId, product.id,);
-        setShowDeleteModal(false);
-      } }
-      title="Product"
-    />
-
     <ProductModal 
       show={showProductModal} 
       onClose={() => setShowProductModal(false)} 
       product={product}
+    />
+
+    <FormModal
+      show={config.mode !== null}
+      mode={config.mode}
+      title={config.title}
+      fields={config.fields}
+      initialData={config.initialData}
+      onSubmit={config.onSubmit}
+      onClose={close}
     />
     </>
   )

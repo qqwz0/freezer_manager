@@ -12,7 +12,7 @@ function DeleteModal({
     onDelete, 
     title, 
 }) {
-
+ 
     return (
         <BaseModal
             show={show}

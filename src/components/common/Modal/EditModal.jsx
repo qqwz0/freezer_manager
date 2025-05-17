@@ -18,7 +18,7 @@ function EditModal({
   useEffect(() => {
     // Initialize values from freezerData and default null for optional
     const initial = {};
-    fields.forEach(f => {
+    fields.forEach(f => { 
       if (f.type === 'file') {
         // no initial file
         initial[f.key] = null;

@@ -16,7 +16,7 @@ function AddModal({
   const handleChange = (key, value) => {
     setExtraValues(prev => ({ ...prev, [key]: value }));
   };
-
+ 
   const handleAddClick = () => {
     if (!name) return;
     // pass both name and other fields to parent
