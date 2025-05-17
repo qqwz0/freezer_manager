@@ -1,10 +1,8 @@
 import React, { useCallback, useState } from 'react'
 import { Card } from 'flowbite-react'
-import { ActionButton } from 'components/common/Button'
-import { EditModal, DeleteModal, ProductModal, FormModal, useModal } from 'components/common/Modal'
-
-import { editProduct, deleteProduct } from 'services/firestoreService'
-import { useAuth }   from 'contexts/AuthContext';
+import { ActionButton, FormModal } from 'shared/ui'
+import { useModal } from 'shared/hooks'
+import { ProductModal } from 'freezers/components'
 
 function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
   const [showProductModal, setShowProductModal] = useState(false)

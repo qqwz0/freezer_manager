@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { FormInput } from 'components/common/Form';
-import { ActionButton } from 'components/common/Button';
+import { ActionButton, FormInput } from 'shared/ui';
 import { useNavigate } from 'react-router-dom';
 
 export default function AuthForm({ text, onSubmit }) {

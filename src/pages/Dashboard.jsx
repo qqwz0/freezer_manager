@@ -1,5 +1,5 @@
 import React from 'react'
-import { FreezersCarousel } from 'components/feautures/Freezers'
+import { FreezersCarousel } from 'freezers/components'
 
 function Dashboard() {
   return (

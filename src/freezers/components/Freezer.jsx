@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from 'flowbite-react';
 
-import { ActionButton } from 'components/common/Button';
-import { EditModal, DeleteModal, Modal, FormModal, useModal } from 'components/common/Modal';
-import { Shelf } from 'components/feautures/Shelves';
+import { Shelf } from 'freezers/components';
+import { useModal } from 'shared/hooks';
+import { ActionButton, FormModal } from 'shared/ui';
 
 export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, onAddShelf, onUpdateShelf, onRemoveShelf, onAddProduct, onUpdateProduct, onRemoveProduct } ) {
   const { config, open, close } = useModal();

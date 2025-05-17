@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BaseModal } from 'components/common/Modal'
-import { ActionButton } from 'components/common/Button'
-import { FormInput } from 'components/common/Form'
-
+import { BaseModal, ActionButton, FormInput } from 'shared/ui'
 
 function FormModal(
     {show,

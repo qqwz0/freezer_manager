@@ -4,10 +4,11 @@ import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-import { ActionButton } from 'components/common/Button';
-import { Modal, FormModal } from 'components/common/Modal';
-import { Freezer, useFreezers } from 'components/feautures/Freezers';
-import { useModal } from 'components/common/Modal';
+import { ActionButton, FormModal } from 'shared/ui';
+import { useModal } from 'shared/hooks';
+
+import { Freezer } from 'freezers/components';
+import { useFreezers } from 'freezers/hooks';
 
 export default function FreezerCarousel() {
   const { config, open, close } = useModal();

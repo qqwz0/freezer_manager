@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -6,9 +6,9 @@ import {
   AccordionTitle
 } from 'flowbite-react';
 
-import { ActionButton } from 'components/common/Button';
-import { DeleteModal, EditModal, Modal, FormModal, useModal } from 'components/common/Modal';
-import { ShelfProduct } from 'components/feautures/Shelves';
+import { ActionButton, FormModal } from 'shared/ui';
+import { useModal } from 'shared/hooks';
+import { ShelfProduct } from 'freezers/components';
 
 export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
   const { config, open, close } = useModal();

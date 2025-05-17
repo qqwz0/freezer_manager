@@ -59,7 +59,7 @@ export default function ActionButton({action, onClick, children, label}) {
   }
 
   return (
-    <button
+    <span
         type='button'
         onClick={e => {
             e.stopPropagation();  
@@ -69,7 +69,7 @@ export default function ActionButton({action, onClick, children, label}) {
         className='p-1 focus:outline-none'
     >
         {icons[action]}
-    </button>
+    </span>
   )
 }
 
