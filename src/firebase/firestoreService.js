@@ -1,5 +1,5 @@
 import { firestore } from "services/firebaseConfig";
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, where } from "firebase/firestore";
 import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 import { uploadToCloudinary } from "services/cloudinary";
@@ -71,6 +71,22 @@ export const createProduct = async (
   return {id: productRef.id, photoUrl, qrCodeUrl: qrUrl};
 };
 
+export const createCategory = async (userId, name, selectedImageUrl) => {
+  if (!name) throw new Error("Category name is required");
+
+  const docRef = await addDoc(
+    collection(firestore, "categories"),
+    {
+      name,
+      imageUrl: selectedImageUrl,
+      createdBy: userId,
+      createdAt: serverTimestamp(),
+    }
+  );
+
+  return docRef.id;
+};
+
 // READ
 
 export const getUserFreezerData = async (userId) => {
@@ -121,6 +137,27 @@ export const getUserFreezerData = async (userId) => {
 
   return freezers
 }
+
+export const getAllCategories = async () => {
+  const q = query(
+    collection(firestore, "categories"),
+    where("createdBy", "==", ""),
+    orderBy("createdAt", "asc")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const getAllCategoriesByUser = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+  const q = query(
+    collection(firestore, "categories"),
+    where("createdBy", "==", userId),
+    orderBy("createdAt", "asc")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
 
 //UPDATE
 
@@ -217,6 +254,18 @@ export const editProduct = async (
   );
 
   await updateDoc(productDocRef, dataToUpdate);
+};
+
+export const editCategory = async (categoryId, updateData = {}) => {
+  if (!Object.keys(updateData).length) {
+    throw new Error("No data provided for update");
+  }
+
+  const categoryDocRef = doc(firestore, "categories", categoryId);
+  await updateDoc(categoryDocRef, {
+    ...updateData,
+    updatedAt: serverTimestamp(),
+  });
 };
 
 // DELETE
@@ -328,4 +377,9 @@ export const deleteProduct = async (userId, freezerId, shelfId, productId) => {
       productId
     )
   );
+}
+
+export const deleteCategory = async (categoryId) => {
+  const categoryRef = doc(firestore, "categories", categoryId);
+  await deleteDoc(categoryRef);
 }
