@@ -6,12 +6,28 @@ import {
   AccordionTitle
 } from 'flowbite-react';
 
+import { getAllCategories } from 'services/firestoreService';
+import { useAuth } from 'contexts/AuthContext';
+
 import { ActionButton, FormModal } from 'shared/ui';
 import { useModal } from 'shared/hooks';
 import { ShelfProduct } from 'freezers/components';
 
 export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
+  const user = useAuth();
   const { config, open, close } = useModal();
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const userCategories = await getAllCategories(user.uid);
+      console.log('user categories', userCategories)
+      setCategories(userCategories);
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <>
@@ -58,6 +74,7 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                     onRemoveProduct={onRemoveProduct}
                     freezerId={freezerId}
                     className='flex flex-row justify-between items-center w-full'
+                    categories={categories}
                   />
                 ))}
                 <ActionButton 
@@ -72,7 +89,7 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                           { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
                           { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
                           { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-                          { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
+                          { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
                           { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
                           { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
                         ],

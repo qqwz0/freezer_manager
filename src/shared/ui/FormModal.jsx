@@ -15,6 +15,8 @@ function FormModal(
     const [preview, setPreview] = useState(null);
     const hasInitialized = React.useRef(false);
 
+    console.log('fields', fields)
+
     useEffect(() => {
         if (!show) {
             hasInitialized.current = false;
@@ -91,7 +93,7 @@ function FormModal(
           ) : (
             fields.map(f => (
               <div key={f.key} className="mb-4">
-                {f.type === 'file' ? (
+                {f.type === 'file' && (
                   <>
                     <FormInput
                       type="file"
@@ -110,7 +112,35 @@ function FormModal(
                       />
                     )}
                   </>
-                ) : (
+                ) }
+
+                {f.type === 'select' && (() => {
+                  const opts = f.options || [];
+
+                  const current = opts.find(o => o.name === values[f.key]);
+
+                  const ordered = current
+                    ? [current, ...opts.filter(o => o.name !== values[f.key])]
+                    : opts;
+
+                  return (
+                    <FormInput
+                      type={f.type}
+                      placeholder={f.placeholder}
+                      required={f.required}
+                      value={values[f.key] || ''}
+                      onChange={e => handleChange(f.key, e.target.value)}
+                    >
+                      {ordered.map(opt => (
+                        <option key={opt.id} value={opt.name}>
+                          {opt.name}
+                        </option>
+                      ))}
+                    </FormInput>
+                  );
+                })()}
+
+                {f.type !== 'file' && f.type !== 'select' && (
                   <FormInput
                     type={f.type}
                     placeholder={f.placeholder}

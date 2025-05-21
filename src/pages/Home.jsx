@@ -7,7 +7,7 @@ import {
   deleteFreezer,
   createCategory,
   getAllCategories,
-  getAllCategoriesByUser,
+  // getAllCategoriesByUser,
   deleteCategory,
   editCategory,
 } from "../firebase/firestoreService";
@@ -102,21 +102,21 @@ export default function SeedButton() {
     }
   };
 
-  const handleGetMyCategories = async () => {
-    if (!user) return alert("Login first");
-    try {
-      const cats = await getAllCategoriesByUser(user.uid);
-      console.log("My categories:", cats);
-      alert(
-        `Your categories (see console):\n${cats
-          .map((c) => `${c.id}: ${c.name}`)
-          .join("\n")}`
-      );
-    } catch (err) {
-      console.error("❌ Get my categories error:", err);
-      alert(`Error: ${err.message}`);
-    }
-  };
+  // const handleGetMyCategories = async () => {
+  //   if (!user) return alert("Login first");
+  //   try {
+  //     const cats = await getAllCategoriesByUser(user.uid);
+  //     console.log("My categories:", cats);
+  //     alert(
+  //       `Your categories (see console):\n${cats
+  //         .map((c) => `${c.id}: ${c.name}`)
+  //         .join("\n")}`
+  //     );
+  //   } catch (err) {
+  //     console.error("❌ Get my categories error:", err);
+  //     alert(`Error: ${err.message}`);
+  //   }
+  // };
 
   const handleDeleteCategory = async () => {
     const id = prompt("Enter category ID to delete:");
@@ -180,7 +180,7 @@ export default function SeedButton() {
       <button onClick={handleSeed}>Seed freezer + products</button>
       <button onClick={handleSeedCategories}>Seed categories</button>
       <button onClick={handleGetAllCategories}>Get all categories</button>
-      <button onClick={handleGetMyCategories}>Get my categories</button>
+      {/* <button onClick={handleGetMyCategories}>Get my categories</button> */}
       <button onClick={updateSpecificCategory}>Update category</button>  {/* new */}
       <button onClick={handleDeleteCategory}>Delete category</button>
       <hr />

@@ -138,26 +138,55 @@ export const getUserFreezerData = async (userId) => {
   return freezers
 }
 
-export const getAllCategories = async () => {
-  const q = query(
-    collection(firestore, "categories"),
+// export const getAllCategories = async () => {
+//   const q = query(
+//     collection(firestore, "categories"),
+//     where("createdBy", "==", ""),
+//     orderBy("createdAt", "asc")
+//   );
+//   const snap = await getDocs(q);
+//   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+// };
+
+// export const getAllCategoriesByUser = async (userId) => {
+//   if (!userId) throw new Error("User ID is required");
+//   const q = query(
+//     collection(firestore, "categories"),
+//     where("createdBy", "==", userId),
+//     orderBy("createdAt", "asc")
+//   );
+//   const snap = await getDocs(q);
+//   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+// };
+
+export const getAllCategories = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+
+  const categoriesRef = collection(firestore, "categories");
+
+  const globalQuery = query(
+    categoriesRef,
     where("createdBy", "==", ""),
     orderBy("createdAt", "asc")
   );
-  const snap = await getDocs(q);
-  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
 
-export const getAllCategoriesByUser = async (userId) => {
-  if (!userId) throw new Error("User ID is required");
-  const q = query(
-    collection(firestore, "categories"),
+  const userQuery = query(
+    categoriesRef,
     where("createdBy", "==", userId),
     orderBy("createdAt", "asc")
   );
-  const snap = await getDocs(q);
-  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  const [globalSnap, userSnap] = await Promise.all([
+    getDocs(globalQuery),
+    getDocs(userQuery),
+  ]);
+
+  const globalCategories = globalSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const userCategories = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  return [...globalCategories, ...userCategories];
 };
+
 
 //UPDATE
 

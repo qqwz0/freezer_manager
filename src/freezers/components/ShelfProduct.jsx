@@ -5,12 +5,12 @@ import { useModal } from 'shared/hooks'
 import { ProductModal } from 'freezers/components'
 import { formatYMD } from '../../shared/utils'
 
-function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
+function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, categories }) {
   const [showProductModal, setShowProductModal] = useState(false)
 
   const {config, open, close} = useModal();
 
-
+  console.log(categories)
   return (
     <>
     <Card className="w-full text-left" onClick={() => setShowProductModal(true)}>
@@ -29,7 +29,8 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct }) {
                           { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
                           { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
                           { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-                          { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
+                          // { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
+                          { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
                           { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
                           { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
                         ],
