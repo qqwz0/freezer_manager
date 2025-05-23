@@ -6,28 +6,18 @@ import {
   AccordionTitle
 } from 'flowbite-react';
 
-import { getAllCategories } from 'services/firestoreService';
 import { useAuth } from 'contexts/AuthContext';
 
 import { ActionButton, FormModal } from 'shared/ui';
 import { useModal } from 'shared/hooks';
 import { ShelfProduct } from 'freezers/components';
+import { useCategories } from 'freezers/hooks';
 
 export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
   const user = useAuth();
   const { config, open, close } = useModal();
 
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const userCategories = await getAllCategories(user.uid);
-      console.log('user categories', userCategories)
-      setCategories(userCategories);
-    };
-
-    fetchCategories();
-  }, []);
+  const { categories } = useCategories();
 
   return (
     <>

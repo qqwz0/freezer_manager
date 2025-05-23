@@ -8,7 +8,7 @@ import { ActionButton, FormModal } from 'shared/ui';
 import { useModal } from 'shared/hooks';
 
 import { Freezer } from 'freezers/components';
-import { useFreezers } from 'freezers/hooks';
+import { useFreezers, useCategories } from 'freezers/hooks';
 
 export default function FreezerCarousel() {
   const { config, open, close } = useModal();
@@ -27,6 +27,8 @@ export default function FreezerCarousel() {
     updateProduct,
     removeProduct
   } = useFreezers();
+
+  const {categories} = useCategories();
 
   if (loading) return <div>Loading…</div>;
   if (error)   return <div>Error: {error.message}</div>;
@@ -60,7 +62,7 @@ export default function FreezerCarousel() {
             />
           </SwiperSlide>
         ))}
-          <SwiperSlide>
+          <SwiperSlide className='flex-col gap-2'>
             <ActionButton 
               label="Freezer" 
               onClick={() =>

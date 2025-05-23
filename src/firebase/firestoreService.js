@@ -1,5 +1,5 @@
 import { firestore } from "services/firebaseConfig";
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, where, getDoc } from "firebase/firestore";
 import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 import { uploadToCloudinary } from "services/cloudinary";
@@ -158,6 +158,16 @@ export const getUserFreezerData = async (userId) => {
 //   const snap = await getDocs(q);
 //   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 // };
+
+export const getCategoryById = async (categoryId) => {
+  if (!categoryId) throw new Error("Category ID is required");
+  const docRef = doc(firestore, "categories", categoryId);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error(`Category with ID ${categoryId} not found`);
+  }
+  return { id: snap.id, ...snap.data() };
+};
 
 export const getAllCategories = async (userId) => {
   if (!userId) throw new Error("User ID is required");

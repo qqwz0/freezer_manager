@@ -5,47 +5,52 @@ import { useModal } from 'shared/hooks'
 import { ProductModal } from 'freezers/components'
 import { formatYMD } from '../../shared/utils'
 
+import { useCategories } from 'freezers/hooks'
+
 function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, categories }) {
   const [showProductModal, setShowProductModal] = useState(false)
 
   const {config, open, close} = useModal();
 
-  console.log(categories)
+  const category = categories.find(cat => cat.id === product.category);
+
   return (
     <>
     <Card className="w-full text-left" onClick={() => setShowProductModal(true)}>
       <div className="flex justify-between items-center w-full">
-        <div className="flex gap-0 items-center">
+        <div className="flex gap-1 items-center">
+          {category?.imageUrl && (
+              <img src={category.imageUrl} alt={category.name} className="w-10 h-10 object-cover rounded" />
+          )}
           <span>{product.name}</span>
           <ActionButton
             onClick={() =>
-                      console.log("Edit product: ", product) ||
-                      open({
-                        mode: 'edit',
-                        title: "Product",
-                        onSubmit: (product) => {onUpdateProduct(shelfId, product.id, product)},
-                        fields: [
-                          { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true },
-                          { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-                          { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
-                          { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-                          // { key: 'category', label: 'Category', type: 'text', placeholder: 'Enter category', required: false },
-                          { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
-                          { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
-                          { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-                        ],
-                        initialData: {
-                          id:             product.id,
-                          name:           product.name,
-                          quantity:       product.quantity,
-                          unit:           product.unit,
-                          category:       product.category || '',
-                          freezingDate:   formatYMD(product.freezingDate),
-                          expirationDate: formatYMD(product.expirationDate),
-                          photoUrl:   product.photoUrl || '',
-                        }
-                      })
-                    }
+              console.log("Edit product: ", product) ||
+              open({
+                mode: 'edit',
+                title: "Product",
+                onSubmit: (product) => {onUpdateProduct(shelfId, product.id, product)},
+                fields: [
+                  { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true },
+                  { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
+                  { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
+                  { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
+                  { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
+                  { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
+                  { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
+                ],
+                initialData: {
+                  id:             product.id,
+                  name:           product.name,
+                  quantity:       product.quantity,
+                  unit:           product.unit,
+                  category:       product.category || '',
+                  freezingDate:   formatYMD(product.freezingDate),
+                  expirationDate: formatYMD(product.expirationDate),
+                  photoUrl:   product.photoUrl || '',
+                }
+              })
+            }
             action="edit"
           />
           <ActionButton

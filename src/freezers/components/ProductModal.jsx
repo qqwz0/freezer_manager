@@ -1,11 +1,16 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
 import { Timestamp } from 'firebase/firestore';
 import { formatYMD } from 'shared/utils';
 
-function ProductModal({show, onClose, product}) {
+import {
+  getCategoryById
+} from 'services/firestoreService';
 
-    console.log("ProductModal", product);
+function ProductModal({show, onClose, product}) {
+    if (!product) return null;
+
+    const  [category, setCategory]  = useState(null);
 
     function getImageSrc(image) {
         if (!image) return null;
@@ -16,13 +21,30 @@ function ProductModal({show, onClose, product}) {
         return null;
     }
 
+    useEffect(() => {
+    if (!show || !product?.category) return;   
+    let canceled = false;
+
+    getCategoryById(product.category)
+        .then(cat => {
+        if (!canceled) setCategory(cat);
+        })
+        .catch(err => {
+        console.error("Failed loading category:", err);
+        });
+
+    return () => {
+        canceled = true;
+    };
+    }, [show, product?.category]);
+
     return (
     <Modal show={show} onClose={onClose}>
         <ModalHeader>{product.name}</ModalHeader>
         <ModalBody>
             <ul>
                 <li>Quantity: {product.quantity} {product.unit}</li>
-                <li>Category: {product.category}</li>
+                { category ? <li>Category: {category.name}</li> : null }
                 <li>Freezing Date: {product.freezingDate
                     ? formatYMD(product.freezingDate)
                     : ''}

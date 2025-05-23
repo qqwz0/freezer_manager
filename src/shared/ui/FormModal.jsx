@@ -15,8 +15,6 @@ function FormModal(
     const [preview, setPreview] = useState(null);
     const hasInitialized = React.useRef(false);
 
-    console.log('fields', fields)
-
     useEffect(() => {
         if (!show) {
             hasInitialized.current = false;
@@ -66,7 +64,10 @@ function FormModal(
         if (mode === 'delete') {
             onSubmit();
         } else if (mode === 'edit') {
-            onSubmit({ ...values, id: initialData.id });
+            console.log({ ...values, id: initialData.id })
+            const payload = { ...values, id: initialData.id };
+            if (values.photoUrl == null) delete payload.photoUrl;
+            onSubmit(payload);
         } else {
             onSubmit(values);
         }
@@ -114,7 +115,7 @@ function FormModal(
                   </>
                 ) }
 
-                {f.type === 'select' && (() => {
+                {/* {f.type === 'select' && (() => {
                   const opts = f.options || [];
 
                   const current = opts.find(o => o.name === values[f.key]);
@@ -132,7 +133,36 @@ function FormModal(
                       onChange={e => handleChange(f.key, e.target.value)}
                     >
                       {ordered.map(opt => (
-                        <option key={opt.id} value={opt.name}>
+                        <option key={opt.id} value={opt.id}>
+                          {opt.name}
+                        </option>
+                      ))}
+                    </FormInput>
+                  );
+                })()} */}
+
+                {f.type === 'select' && (() => {
+                  const opts = f.options || [];
+                  const emptyOption = { id: '', name: '-- Category (None) --'}
+
+                  const current = opts.find(o => o.id === values[f.key]);
+
+                  const ordered = current
+                    ? [current, ...opts.filter(o => o.id !== values[f.key])]
+                    : opts;
+
+                  const finalOptions = mode === 'add' ? [emptyOption, ...ordered] : ordered;
+
+                  return (
+                    <FormInput
+                      type={f.type}
+                      placeholder={f.placeholder}
+                      required={f.required}
+                      value={values[f.key] || ''}
+                      onChange={e => handleChange(f.key, e.target.value)}
+                    >
+                      {finalOptions.map(opt => (
+                        <option key={opt.id} value={opt.id}>
                           {opt.name}
                         </option>
                       ))}
