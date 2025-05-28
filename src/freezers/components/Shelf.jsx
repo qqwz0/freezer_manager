@@ -17,7 +17,7 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
   const user = useAuth();
   const { config, open, close } = useModal();
 
-  const { categories } = useCategories();
+  const { categories, units } = useCategories();
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
           <AccordionTitle 
               className='cursor-pointer flex flex-row justify-between items-center w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg p-5' // Added background and hover classes
             >
-                <div className='flex flex-row gap-2 items-center'>
+                <div className='flex flex-row gap-2 items-center pl-2'>
                   {shelf.name}
                   <ActionButton
                     onClick={() =>
@@ -65,6 +65,7 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                     freezerId={freezerId}
                     className='flex flex-row justify-between items-center w-full'
                     categories={categories}
+                    units={units}
                   />
                 ))}
                 <ActionButton 
@@ -77,7 +78,8 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                         fields: [
                           { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
                           { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-                          { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
+                          // { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },                          // { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
+                          { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
                           { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
                           { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
                           { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },

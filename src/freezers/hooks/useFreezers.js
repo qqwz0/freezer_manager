@@ -167,73 +167,129 @@ export default function useFreezers() {
 
     // Add a product to a shelf
 
+    // const addProduct = useCallback(async (freezerId, shelfId, product) => {
+    //     if (!product || !shelfId || !freezerId) return;
+
+    //     try {
+    //         const freezingDateObj = product.freezingDate
+    //             ? new Date(product.freezingDate)
+    //             : null;
+    //         const expirationDateObj = product.expirationDate
+    //             ? new Date(product.expirationDate)
+    //             : null;
+    //         const photoFile = product.picture || null;
+
+    //         const {
+    //             id: productId,
+    //             photoUrl,
+    //             qrCodeUrl
+    //         } = await createProduct(
+    //             user.uid,
+    //             freezerId,
+    //             shelfId,
+    //             product.name,
+    //             product.quantity,
+    //             product.unit,
+    //             product.category,
+    //             freezingDateObj,
+    //             expirationDateObj,
+    //             photoFile
+    //         );
+
+    //         setFreezers(prev => 
+    //             prev.map(
+    //                 f => 
+    //                     f.id === freezerId
+    //                     ? {
+    //                         ...f,
+    //                         shelves: f.shelves.map(
+    //                             s =>
+    //                                 s.id === shelfId
+    //                                 ? {
+    //                                     ...s,
+    //                                     products: [
+    //                                         ...s.products,
+    //                                         {
+    //                                             id: productId,
+    //                                             name: product.name,
+    //                                             quantity: product.quantity,
+    //                                             unit: product.unit,
+    //                                             category: product.category,
+    //                                             freezingDate: product.freezingDate,
+    //                                             expirationDate: product.expirationDate,
+    //                                             photoUrl,     
+    //                                             qrCodeUrl     
+    //                                         }
+    //                                     ]
+    //                                 }
+    //                                 : s
+    //                         )
+    //                     }
+    //                     : f 
+    //             )
+    //         )
+    //     console.log('Product added:', product);
+    //     } catch (e) {
+    //         console.error(e);
+    //         setError(e);
+    //     }
+    // }, [user]);
+
+    const parseDMY = (str) => {
+  if (!str) return undefined;
+  const parts = str.includes('.') ? str.split('.') : str.split('/');
+  if (parts.length !== 3) return undefined;
+  const [day, month, year] = parts.map(Number);
+  return new Date(year, month - 1, day);
+};
+
+
     const addProduct = useCallback(async (freezerId, shelfId, product) => {
-        if (!product || !shelfId || !freezerId) return;
+    if (!product || !shelfId || !freezerId) return;
+    try {
+        const freezingDateObj = product.freezingDate instanceof Date
+            ? product.freezingDate
+            : parseDMY(product.freezingDate);
+        const expirationDateObj = product.expirationDate instanceof Date
+            ? product.expirationDate
+            : parseDMY(product.expirationDate);
 
-        try {
-            const freezingDateObj = product.freezingDate
-                ? new Date(product.freezingDate)
-                : null;
-            const expirationDateObj = product.expirationDate
-                ? new Date(product.expirationDate)
-                : null;
-            const photoFile = product.picture || null;
+        const { id: productId, photoUrl, qrCodeUrl } = await createProduct(
+            user.uid,
+            freezerId,
+            shelfId,
+            product.name,
+            product.quantity,
+            product.unit,
+            product.category,
+            freezingDateObj,
+            expirationDateObj,
+            product.picture || null
+        );
 
-            const {
-                id: productId,
-                photoUrl,
-                qrCodeUrl
-            } = await createProduct(
-                user.uid,
-                freezerId,
-                shelfId,
-                product.name,
-                product.quantity,
-                product.unit,
-                product.category,
-                freezingDateObj,
-                expirationDateObj,
-                photoFile
-            );
+        setFreezers(prev => prev.map(f => f.id === freezerId ? ({
+            ...f,
+            shelves: f.shelves.map(s => s.id === shelfId ? ({
+                ...s,
+                products: [...s.products, {
+                    id: productId,
+                    name: product.name,
+                    quantity: product.quantity,
+                    unit: product.unit,
+                    category: product.category,
+                    freezingDate: freezingDateObj,
+                    expirationDate: expirationDateObj,
+                    photoUrl,
+                    qrCodeUrl
+                }]
+            }) : s)
+        }) : f));
+    } catch (e) {
+        console.error(e);
+        setError(e);
+    }
+}, [user]);
 
-            setFreezers(prev => 
-                prev.map(
-                    f => 
-                        f.id === freezerId
-                        ? {
-                            ...f,
-                            shelves: f.shelves.map(
-                                s =>
-                                    s.id === shelfId
-                                    ? {
-                                        ...s,
-                                        products: [
-                                            ...s.products,
-                                            {
-                                                id: productId,
-                                                name: product.name,
-                                                quantity: product.quantity,
-                                                unit: product.unit,
-                                                category: product.category,
-                                                freezingDate: product.freezingDate,
-                                                expirationDate: product.expirationDate,
-                                                photoUrl,     
-                                                qrCodeUrl     
-                                            }
-                                        ]
-                                    }
-                                    : s
-                            )
-                        }
-                        : f 
-                )
-            )
-        console.log('Product added:', product);
-        } catch (e) {
-            console.error(e);
-            setError(e);
-        }
-    }, [user]);
 
     const updateProduct = useCallback(async (freezerId, shelfId, productId, updatedProduct) => {
       if (!updatedProduct || !shelfId || !freezerId) return;

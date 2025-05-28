@@ -74,6 +74,7 @@ function FormModal(
         onClose();
     };
 
+
     const isDel = mode === 'delete';
     const headerText = isDel
         ? `Delete ${title}`
@@ -115,35 +116,12 @@ function FormModal(
                   </>
                 ) }
 
-                {/* {f.type === 'select' && (() => {
-                  const opts = f.options || [];
-
-                  const current = opts.find(o => o.name === values[f.key]);
-
-                  const ordered = current
-                    ? [current, ...opts.filter(o => o.name !== values[f.key])]
-                    : opts;
-
-                  return (
-                    <FormInput
-                      type={f.type}
-                      placeholder={f.placeholder}
-                      required={f.required}
-                      value={values[f.key] || ''}
-                      onChange={e => handleChange(f.key, e.target.value)}
-                    >
-                      {ordered.map(opt => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name}
-                        </option>
-                      ))}
-                    </FormInput>
-                  );
-                })()} */}
-
                 {f.type === 'select' && (() => {
                   const opts = f.options || [];
-                  const emptyOption = { id: '', name: '-- Category (None) --'}
+                  const emptyOptionLabel = `-- No ${f.label || f.key} --`;
+                  const emptyOption = { id: '', name: emptyOptionLabel };
+
+                  console.log(opts)
 
                   const current = opts.find(o => o.id === values[f.key]);
 
@@ -177,6 +155,7 @@ function FormModal(
                     required={f.required}
                     value={values[f.key] || ''}
                     onChange={e => handleChange(f.key, e.target.value)}
+                    // minDate={minDate}
                   />
                 )}
               </div>

@@ -1,2 +1,2 @@
-export { formatYMD } from './dateUtils';
+export { formatDMY } from './dateUtils';
 export { getImageSrc } from './imageUtils';

@@ -197,6 +197,19 @@ export const getAllCategories = async (userId) => {
   return [...globalCategories, ...userCategories];
 };
 
+  export const getAllUnits = async () => {
+    try {
+      const unitsSnapshot = await getDocs(collection(firestore, 'units'));
+      const units = unitsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      return units;
+    } catch (error) {
+      console.error('Error fetching units:', error);
+      return [];
+    }
+  };
 
 //UPDATE
 

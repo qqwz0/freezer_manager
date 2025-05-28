@@ -1,6 +1,14 @@
-import { Label, Select, TextInput, FileInput } from "flowbite-react";
+import { Label, Select, TextInput, FileInput, Datepicker } from "flowbite-react";
 
-export default function FormInput({ type, placeholder, value, onChange, required, children }) {
+const parseDMY = (str) => {
+  if (!str) return undefined;
+  const parts = str.includes('.') ? str.split('.') : str.split('/');
+  if (parts.length !== 3) return undefined;
+  const [day, month, year] = parts.map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export default function FormInput({ type, placeholder, value, onChange, required,minDate, children }) {
     return (
         <>
             {type === 'select' && (
@@ -17,14 +25,22 @@ export default function FormInput({ type, placeholder, value, onChange, required
                 />
             )}
 
-            {type !== 'select' && type !== 'file' && (   
+            {type === 'date' && (
+                <Datepicker
+                    value={value instanceof Date ? value : parseDMY(value)}
+                    onChange={(date) => onChange({ target: { value: date } })}
+                    required={required}
+                    minDate={minDate}
+                />
+            )}
+
+            {['select','file','date'].indexOf(type) < 0 && (
                 <TextInput
                     type={type}
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
                     required={required}
-                    // className="bg-gray-50 text-lg border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
             )}
         </>
