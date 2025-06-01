@@ -6,6 +6,7 @@ import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/freezer_manager/',
   plugins: [react(), tailwindcss(), flowbiteReact()],
   resolve: {
     alias: {
