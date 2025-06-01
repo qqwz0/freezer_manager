@@ -39,7 +39,7 @@ export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, 
       </div>
       <Card className="max-w-xl mx-auto dark:bg-blue-900">
         <div className="flex flex-col gap-4 pb-4 max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-track-blue-100 scrollbar-thumb-blue-300 dark:scrollbar-track-blue-900 dark:scrollbar-thumb-blue-700">
-          {freezerData.shelves.map((shelf) => (
+          {freezerData.shelves && freezerData.shelves.map((shelf) => (
             <Shelf 
               key={shelf.id} 
               shelf={shelf} 
@@ -53,6 +53,18 @@ export default function Freezer( { freezerData, onDeleteFreezer, onEditFreezer, 
               className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
             />
           ))}
+            <Shelf 
+              key='unassigned'
+              shelf={{id: '', name: 'No shelf products'}} 
+              freezerId={freezerData.id}
+              freezerData={freezerData}
+              onRemoveShelf={onRemoveShelf}
+              onUpdateShelf={onUpdateShelf}
+              onAddProduct={onAddProduct}
+              onUpdateProduct={onUpdateProduct}
+              onRemoveProduct={onRemoveProduct}
+              className="bg-white dark:bg-blue-800 rounded-lg p-4 shadow-lg transition-all hover:shadow-xl"
+            />
           <ActionButton
             onClick={() =>
             open({

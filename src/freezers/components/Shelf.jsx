@@ -8,16 +8,20 @@ import {
 
 import { useAuth } from 'contexts/AuthContext';
 
+import {useCategories} from 'freezers/hooks';
+
 import { ActionButton, FormModal } from 'shared/ui';
 import { useModal } from 'shared/hooks';
 import { ShelfProduct } from 'freezers/components';
-import { useCategories } from 'freezers/hooks';
 
-export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
+export default function Shelf({ shelf, freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
   const user = useAuth();
+
   const { config, open, close } = useModal();
 
   const { categories, units } = useCategories();
+
+  const shelfData = shelf.name === 'No shelf products' ? {id: shelf.id, name: '-- No Shelf --'} : {id: shelf.id, name: shelf.name }
 
   return (
     <>
@@ -26,9 +30,13 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
           <AccordionTitle 
               className='cursor-pointer flex flex-row justify-between items-center w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg p-5' // Added background and hover classes
             >
-                <div className='flex flex-row gap-2 items-center pl-2'>
+                <div className='flex flex-row gap-2 items-center'>
                   {shelf.name}
-                  <ActionButton
+                  {
+                    shelf.id &&
+                    (
+                      <>
+                      <ActionButton
                     onClick={() =>
                       open({
                         mode: 'edit',
@@ -52,17 +60,25 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                     }
                     action="delete"
                   />
+                      </>
+                    )
+                  }
                 </div>
               </AccordionTitle>
               <AccordionContent className='flex flex-col gap-2 cursor-pointer'>
-                {shelf.products.map(product => (
+                { freezerData.products && freezerData.products.filter(product => {if (shelf.id) {
+                  return product.shelfId === shelf.id;
+                }
+                return !product.shelfId;
+                }).map(product => (
                   <ShelfProduct 
                     key={product.id} 
+                    shelves={freezerData.shelves}
                     product={product} 
                     shelfId={shelf.id}
                     onUpdateProduct={onUpdateProduct}
                     onRemoveProduct={onRemoveProduct}
-                    freezerId={freezerId}
+                    freezerId={freezerData.id}
                     className='flex flex-row justify-between items-center w-full'
                     categories={categories}
                     units={units}
@@ -77,14 +93,14 @@ export default function Shelf({ shelf, freezerId, onRemoveShelf, onUpdateShelf, 
                         onSubmit: (product) => onAddProduct(shelf.id, product),
                         fields: [
                           { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
+                          { key: 'shelfId', label: 'Shelf', type: 'select', options: freezerData.shelves, required: false, value: shelfData},
                           { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-                          // { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },                          // { key: 'unit', label: 'Unit', type: 'text', placeholder: 'Enter unit', required: true },
                           { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
                           { key: 'picture', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
                           { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
                           { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
                           { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-                        ],
+                        ]
                       })
                     }
                   action="add" 

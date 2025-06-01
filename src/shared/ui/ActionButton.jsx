@@ -27,6 +27,11 @@ const icons = {
         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.779 17.779 4.36 19.918 6.5 13.5m4.279 4.279 8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14 6.213-6.504M12.75 7.04 17 11.28"/>
       </svg>
     ),
+    scan: (
+      <svg className="w-6 h-6 text-gray-800 dark:text-white hover:text-blue-500 cursor-pointer" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5v1.5a2.25 2.25 0 002.25 2.25h1.5m9-3.75h1.5a2.25 2.25 0 012.25 2.25v1.5m0 9v1.5a2.25 2.25 0 01-2.25 2.25h-1.5m-9 0h-1.5a2.25 2.25 0 01-2.25-2.25v-1.5" />
+      </svg>
+    )
 };
 
 export default function ActionButton({action, onClick, children, label}) {
@@ -56,6 +61,19 @@ export default function ActionButton({action, onClick, children, label}) {
          Create {label}
         </Button>
     )
+  } else if (action === 'scan') {
+    return (
+        <Button 
+        className='w-full shadow-lg cursor-pointer' 
+        color="gray" 
+        onClick={e => {
+            e.stopPropagation();
+            onClick?.(e);
+        }}
+        >
+          {icons[action]} {label && label}
+        </Button>
+    )
   }
 
   return (
@@ -74,7 +92,7 @@ export default function ActionButton({action, onClick, children, label}) {
 }
 
 ActionButton.propTypes = {
-    variant: PropTypes.oneOf(['delete', 'edit', 'submit']).isRequired,
+    variant: PropTypes.oneOf(['delete', 'edit', 'submit', 'scan']).isRequired,
     onClick: PropTypes.func,
     children: PropTypes.node,
 };

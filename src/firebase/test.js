@@ -27,7 +27,6 @@ async function seedFreezerForEmail(email) {
   await createProduct(uid, freezerId, shelfId, "Corn", 500, "g");
   await createProduct(uid, freezerId, shelfId, "Ice Cream", 6, "pops");
 
-  console.log("✅ Seeding complete");
 }
 
 seedFreezerForEmail("auwdiadhwhdi@gmail.com").catch(console.error);

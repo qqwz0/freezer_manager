@@ -13,7 +13,9 @@
   "dependencies": {
     "firebase": "^11.6.0",
     "flowbite-react": "^0.11.7",
+    "html5-qrcode": "^2.3.8",
     "prop-types": "^15.8.1",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.1",

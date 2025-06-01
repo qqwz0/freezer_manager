@@ -17,7 +17,6 @@ export default function AuthForm({ text, onSubmit }) {
       console.error('Error during authentication:', error);
       alert(`Authentication failed: ${error.message}`);
     } finally {
-      console.log('Loading finished');
     } 
   };
 

@@ -8,7 +8,6 @@ export default function SignUp() {
     alert(`Успішно зареєстровано: ${user.email}`);
 
     const loggedInUser = await login(email, password);
-    console.log('Автоматично залогінено:', loggedInUser);
   };
 
   return (

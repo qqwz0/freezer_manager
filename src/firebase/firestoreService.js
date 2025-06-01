@@ -17,58 +17,68 @@ export const createFreezer = async (userId, name) => {
 };
 
 export const createShelf = async (userId, freezerId, name = "") => {
-  const shelfRef = await addDoc(collection(firestore, "users", userId, "freezers", freezerId, "shelves"), {
-    name,
-    createdAt: new Date(),
-  });
+  if (!freezerId) throw new Error("Freezer ID is required");
+  const shelfRef = await addDoc(
+    collection(firestore, "users", userId, "freezers", freezerId, "shelves"),
+    { name, createdAt: serverTimestamp() }
+  );
   return shelfRef.id;
 };
 
+
 export const createProduct = async (
-  userId, freezerId, shelfId,
-  productName, quantity = 0, unit = "",
-  category = "", freezingDate = null,
+  userId,
+  freezerId,
+  shelfId,
+  productName,
+  quantity = 0,
+  unit = "",
+  category = "",
+  freezingDate = null,
   expirationDate = null,
-  photoFile = null             // ← new parameter: a File/Blob from an <input type="file" />
+  photoFile = null
 ) => {
   if (!productName) throw new Error("Product name is required");
+  if (!freezerId) throw new Error("Freezer ID is required");
 
-  console.log("photoFile:", photoFile);
-
-
-  // 1) upload photo
+  // upload photo if provided
   let photoUrl = "";
   if (photoFile) {
     photoUrl = await uploadToCloudinary(photoFile);
   }
 
-  // 2) generate & upload QR
-  const qrBlob   = await generateQRBlob(productName + "|" + Date.now());
-  const qrUrl    = await uploadToCloudinary(qrBlob);
-
-  // 3) build your Firestore data
+  // Create the product first to get the ID
   const productData = {
-    name:             productName,
-    quantity, unit, category,
-    createdAt:        new Date(),
-    freezingDate:     freezingDate instanceof Date ? freezingDate : null,
-    expirationDate:   expirationDate instanceof Date ? expirationDate : null,
-    photoUrl,          
-    qrCodeUrl:         qrUrl,
+    name: productName,
+    quantity,
+    unit,
+    category,
+    shelfId,
+    createdAt: serverTimestamp(),
+    freezingDate: freezingDate instanceof Date ? Timestamp.fromDate(freezingDate) : null,
+    expirationDate: expirationDate instanceof Date ? Timestamp.fromDate(expirationDate) : null,
+    photoUrl,
+    qrCodeUrl: "" // Will be updated after QR generation
   };
 
-  const productRef = await addDoc(
-    collection(
-      firestore,
-      "users", userId,
-      "freezers", freezerId,
-      "shelves", shelfId,
-      "products"
-    ),
-    productData
+  const productsRef = collection(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "products"
   );
+  const productRef = await addDoc(productsRef, productData);
 
-  return {id: productRef.id, photoUrl, qrCodeUrl: qrUrl};
+  // Generate QR code with the product ID instead of product name
+  const qrBlob = await generateQRBlob(productRef.id);
+  const qrCodeUrl = await uploadToCloudinary(qrBlob);
+
+  // Update the product with the QR code URL
+  await updateDoc(productRef, { qrCodeUrl });
+
+  return { id: productRef.id, photoUrl, qrCodeUrl };
 };
 
 export const createCategory = async (userId, name, selectedImageUrl) => {
@@ -90,53 +100,44 @@ export const createCategory = async (userId, name, selectedImageUrl) => {
 // READ
 
 export const getUserFreezerData = async (userId) => {
-  const freezersQuery = query(
-    collection(firestore, 'users', userId, 'freezers'), 
-    orderBy('createdAt', 'asc')
-  )
-  const freezersSnap = await getDocs(freezersQuery)
-  
-  const freezers = await Promise.all(
-    freezersSnap.docs.map(async (freezerDoc) => {
-      const freezerData = { id: freezerDoc.id, ...freezerDoc.data() }
+  const freezersQ = query(
+    collection(firestore, "users", userId, "freezers"),
+    orderBy("createdAt", "asc")
+  );
+  const freezersSnap = await getDocs(freezersQ);
 
-      const shelvesQuery = query(
-        collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves'),
-        orderBy('createdAt', 'asc')
-      )
+  const result = [];
+  for (const fDoc of freezersSnap.docs) {
+    const freezer = { id: fDoc.id, ...fDoc.data(), shelves: [], products: [] };
+    // get shelves
+    const shelvesQ = query(
+      collection(firestore, "users", userId, "freezers", fDoc.id, "shelves"),
+      orderBy("createdAt", "asc")
+    );
+    const shelvesSnap = await getDocs(shelvesQ);
+    freezer.shelves = shelvesSnap.docs.map(s => ({ id: s.id, ...s.data() }));
 
-      const shelvesSnap = await getDocs(shelvesQuery)
+    // get products under this freezer
+    const productsQ = query(
+      collection(firestore, "users", userId, "freezers", fDoc.id, "products"),
+      orderBy("createdAt", "asc")
+    );
+    const productsSnap = await getDocs(productsQ);
+    freezer.products = productsSnap.docs.map(p => {
+      const raw = p.data();
+      return {
+        id: p.id,
+        ...raw,
+        freezingDate: raw.freezingDate?.toDate() || null,
+        expirationDate: raw.expirationDate?.toDate() || null
+      };
+    });
 
-      const shelves = await Promise.all(
-        shelvesSnap.docs.map(async (shelfDoc) => {
-          const shelfData = { id: shelfDoc.id, ...shelfDoc.data() }
+    result.push(freezer);
+  }
+  return result;
+};
 
-           const productsQuery = query(
-            collection(firestore, 'users', userId, 'freezers', freezerDoc.id, 'shelves', shelfDoc.id, 'products'),
-            orderBy('createdAt', 'asc')
-          )
-
-          const productsSnap = await getDocs(productsQuery)
-          const products = productsSnap.docs.map(p => {
-            const raw = p.data();
-            return {
-              id: p.id,
-              ...raw,
-              freezingDate: raw.freezingDate?.toDate() || null,
-              expirationDate: raw.expirationDate?.toDate() || null
-            };
-          });
-
-          return { ...shelfData, products }
-        })
-      )
-
-      return { ...freezerData, shelves }
-    })
-  )
-
-  return freezers
-}
 
 // export const getAllCategories = async () => {
 //   const q = query(
@@ -214,7 +215,6 @@ export const getAllCategories = async (userId) => {
 //UPDATE
 
 export const editFreezer = async (userId, freezerId, newName) => {
-  console.log("Editing freezer:", freezerId, "to", newName);
   if (!newName) throw new Error("New name is required");
 
   const freezerRef = doc(firestore, "users", userId, "freezers", freezerId);
@@ -235,77 +235,78 @@ export const editShelf = async (userId, freezerId, shelfId, name) => {
 export const editProduct = async (
   userId,
   freezerId,
-  shelfId,
   productId,
   updateData = {}
 ) => {
-  if (!userId || !freezerId || !shelfId || !productId) {
-    throw new Error("Missing required document ID parameters");
-  }
+  if (!userId || !freezerId || !productId) throw new Error("Missing identifiers");
+  
+  // Extract special fields
+  const { 
+    photoFile, 
+    regenerateQr, 
+    freezingDate, 
+    expirationDate, 
+    shelfId, 
+    ...rest 
+  } = updateData;
 
-  // Extract file and QR flag; support both photoFile and legacy picture key
-  const { photoFile, picture, photoUrl, regenerateQr, ...rest } = updateData;
-  // normalize file object
-  const fileToUpload = photoFile || picture || photoUrl || null;
+  // 1. SANITIZE DATA - Remove any File/Blob objects
+  const sanitizedRest = Object.entries(rest).reduce((acc, [key, value]) => {
+    if (!(value instanceof File) && !(value instanceof Blob)) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
-  // Prepare update payload
-  const dataToUpdate = {
-    ...rest,
-    updatedAt: serverTimestamp(),
+  // 2. PREPARE BASE UPDATE
+  const dataToUpdate = { 
+    ...sanitizedRest, 
+    updatedAt: serverTimestamp() 
   };
 
-  // Handle date conversions
-  const processDate = date => {
+  // 3. HANDLE SHELF ID
+  if (updateData.hasOwnProperty('shelfId')) {
+  // explicitly allow empty string or null
+    dataToUpdate.shelfId = shelfId === "" ? null : shelfId;
+  }
+
+  // 4. HANDLE DATES
+  const toTimestamp = (date) => {
     if (!date) return null;
-    if (typeof date === 'string') {
-      const parsed = new Date(date);
-      return isNaN(parsed.getTime()) ? null : Timestamp.fromDate(parsed);
-    }
     if (date instanceof Date) return Timestamp.fromDate(date);
     if (date instanceof Timestamp) return date;
+    if (typeof date === 'string') return Timestamp.fromDate(new Date(date));
     return null;
   };
 
-  if ('freezingDate' in rest) {
-    dataToUpdate.freezingDate = processDate(rest.freezingDate);
-  }
-  if ('expirationDate' in rest) {
-    dataToUpdate.expirationDate = processDate(rest.expirationDate);
+  if (freezingDate) dataToUpdate.freezingDate = toTimestamp(freezingDate);
+  if (expirationDate) dataToUpdate.expirationDate = toTimestamp(expirationDate);
+
+  // 5. HANDLE PHOTO UPLOAD (convert File to URL)
+  if (photoFile) {
+    const newUrl = await uploadToCloudinary(photoFile);
+    dataToUpdate.photoUrl = newUrl;
   }
 
-  // Upload new photo if provided
-  if (fileToUpload) {
-    const uploadedUrl = await uploadToCloudinary(fileToUpload);
-    dataToUpdate.photoUrl = uploadedUrl;
-  }
-
-  // Regenerate QR code if requested
+  // 6. HANDLE QR REGENERATION
   if (regenerateQr) {
     const qrBlob = await generateQRBlob(`${productId}|${Date.now()}`);
     const qrUrl = await uploadToCloudinary(qrBlob);
     dataToUpdate.qrCodeUrl = qrUrl;
   }
 
-  // Clean undefined or unsupported
-  Object.keys(dataToUpdate).forEach(key => {
-    if (
-      dataToUpdate[key] === undefined ||
-      dataToUpdate[key] instanceof File ||
-      dataToUpdate[key] instanceof Blob
-    ) {
-      delete dataToUpdate[key];
-    }
-  });
-
-  const productDocRef = doc(
+  // 7. PERFORM THE UPDATE
+  const prodRef = doc(
     firestore,
-    "users", userId,
-    "freezers", freezerId,
-    "shelves", shelfId,
-    "products", productId
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "products",
+    productId
   );
-
-  await updateDoc(productDocRef, dataToUpdate);
+  
+  await updateDoc(prodRef, dataToUpdate);
 };
 
 export const editCategory = async (categoryId, updateData = {}) => {
@@ -323,113 +324,78 @@ export const editCategory = async (categoryId, updateData = {}) => {
 // DELETE
 
 export const deleteFreezer = async (userId, freezerId) => {
-  const shelvesSnap = await getDocs(
-    collection(firestore, "users", userId, "freezers", freezerId, "shelves")
+  // delete all products
+  const productsQ = collection(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "products"
   );
+  const prodSnap = await getDocs(productsQ);
+  await Promise.all(prodSnap.docs.map(p => deleteDoc(p.ref)));
 
-  await Promise.all(
-    shelvesSnap.docs.map(async (shelf) => {
-      const productsSnap = await getDocs(
-        collection(
-          firestore,
-          "users",
-          userId,
-          "freezers",
-          freezerId,
-          "shelves",
-          shelf.id,
-          "products"
-        )
-      );
-
-      await Promise.all(
-        productsSnap.docs.map((product) =>
-          deleteDoc(
-            doc(
-              firestore,
-              "users",
-              userId,
-              "freezers",
-              freezerId,
-              "shelves",
-              shelf.id,
-              "products",
-              product.id
-            )
-          )
-        )
-      );
-
-      await deleteDoc(
-        doc(firestore, "users", userId, "freezers", freezerId, "shelves", shelf.id)
-      );
-    })
+  // delete all shelves
+  const shelvesQ = collection(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "shelves"
   );
+  const shelvesSnap = await getDocs(shelvesQ);
+  await Promise.all(shelvesSnap.docs.map(s => deleteDoc(s.ref)));
 
-  await deleteDoc(doc(firestore, "users", userId, "freezers", freezerId));
+  // delete freezer
+  const freezerRef = doc(firestore, "users", userId, "freezers", freezerId);
+  await deleteDoc(freezerRef);
 };
 
 
 export const deleteShelf = async (userId, freezerId, shelfId) => {
-  const productsSnap = await getDocs(
+  // reassign or delete products on that shelf as needed before deletion
+  const productsQ = query(
     collection(
-      firestore, 
-      "users",
-      userId,
-      "freezers",
-      freezerId,
-      "shelves",
-      shelfId,
-      "products"
-    )
-  );
-
-  await Promise.all(
-    productsSnap.docs.map((product) => 
-      deleteDoc(
-        doc(
-          firestore,
-          "users",
-          userId,
-          "freezers",
-          freezerId,
-          "shelves",
-          shelfId,
-          "products",
-          product.id
-        )
-      )
-    )
-  )
-
-  await deleteDoc(
-    doc(
       firestore,
       "users",
       userId,
       "freezers",
       freezerId,
-      "shelves",
-      shelfId
-    )
+      "products"
+    ),
+    where("shelfId", "==", shelfId)
   );
+  const snap = await getDocs(productsQ);
+  await Promise.all(
+    snap.docs.map(p => deleteDoc(p.ref))
+  );
+
+  const shelfRef = doc(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "shelves",
+    shelfId
+  );
+  await deleteDoc(shelfRef);
 };
 
-export const deleteProduct = async (userId, freezerId, shelfId, productId) => {
-  await deleteDoc(
-    doc(
-      firestore,
-      "users",
-      userId,
-      "freezers",
-      freezerId,
-      "shelves",
-      shelfId,
-      "products",
-      productId
-    )
+export const deleteProduct = async (userId, freezerId, productId) => {
+  const prodRef = doc(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "products",
+    productId
   );
-}
+  await deleteDoc(prodRef);
+};
 
 export const deleteCategory = async (categoryId) => {
   const categoryRef = doc(firestore, "categories", categoryId);

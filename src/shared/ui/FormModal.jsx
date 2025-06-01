@@ -13,6 +13,7 @@ function FormModal(
 ) {
     const [values, setValues] = useState({});
     const [preview, setPreview] = useState(null);
+    const [errors, setErrors] = useState({});
     const hasInitialized = React.useRef(false);
 
     useEffect(() => {
@@ -54,17 +55,44 @@ function FormModal(
             setValues(initial);
             setPreview(null);
         }
+
+        setErrors({});
     }, [mode, fields, initialData, show]);
 
     const handleChange = (key, value) => {
         setValues(prev => ({ ...prev, [key]: value }));
     };
 
+    const validate = () => {
+      const errs = {}
+      if (mode !== 'delete') {
+        fields.forEach(f => {
+          const val = values[f.key]
+          if (f.required && f.key !== 'shelfId' && (val === '' || val == null)) {
+            errs[f.key] = `${f.label || f.key} is required`
+          }
+          if (f.type === 'number' && val !== '' && val != null) {
+            const isNumeric = !isNaN(val) && /^-?\d+(\.\d+)?$/.test(val.toString());
+            if (!isNumeric) {
+              errs[f.key] = `${f.label || f.key} must be a valid number`;
+            }
+          }
+        });
+      }
+      return errs
+    }
+
     const handleConfirm = () => {
+        const newErrors = validate()
+        if (Object.keys(newErrors).length) {
+          setErrors(newErrors)
+          return
+        }
+
         if (mode === 'delete') {
             onSubmit();
         } else if (mode === 'edit') {
-            console.log({ ...values, id: initialData.id })
+            console.log('payload', { ...values, id: initialData.id })
             const payload = { ...values, id: initialData.id };
             if (values.photoUrl == null) delete payload.photoUrl;
             onSubmit(payload);
@@ -93,11 +121,14 @@ function FormModal(
               Are you sure you want to delete this {title}? This action cannot be undone.
             </p>
           ) : (
-            fields.map(f => (
+            fields.map(f => {
+              const error = errors[f.key]
+              return(
               <div key={f.key} className="mb-4">
                 {f.type === 'file' && (
                   <>
                     <FormInput
+                      id={f.key}
                       type="file"
                       accept="image/*"
                       onChange={e => {
@@ -105,6 +136,8 @@ function FormModal(
                         handleChange(f.key, file);
                         setPreview(URL.createObjectURL(file));
                       }}
+                      label={f.label}
+                      error={error}
                     />
                     {preview && (
                       <img
@@ -121,45 +154,156 @@ function FormModal(
                   const emptyOptionLabel = `-- No ${f.label || f.key} --`;
                   const emptyOption = { id: '', name: emptyOptionLabel };
 
-                  console.log(opts)
+                  const selectedId = f.value?.id ?? values[f.key] ?? '';
+                  const currentOpt = opts.find(o => o.id === selectedId) || null;
+                  const others = opts.filter(o => o.id !== (currentOpt?.id));
 
-                  const current = opts.find(o => o.id === values[f.key]);
+                  let finalOptions = [];
 
-                  const ordered = current
-                    ? [current, ...opts.filter(o => o.id !== values[f.key])]
-                    : opts;
-
-                  const finalOptions = mode === 'add' ? [emptyOption, ...ordered] : ordered;
-
+                  if (mode === 'add') {
+                    // Add mode: always show empty option
+                    if (!selectedId) {
+                      // Nothing selected: empty first
+                      finalOptions = [
+                        emptyOption,
+                        ...others,
+                      ];
+                    } else {
+                      // Something selected: selected first, others, then empty last
+                      finalOptions = [
+                        currentOpt,
+                        ...others,
+                        emptyOption,
+                      ];
+                    }
+                  } else {
+                    // Edit mode: always show empty option
+                    if (!selectedId) {
+                      // Nothing selected: empty first
+                      finalOptions = [
+                        emptyOption,
+                        ...others,
+                      ];
+                    } else {
+                      // Something selected: selected first, others, then empty last
+                      finalOptions = [
+                        currentOpt,
+                        ...others,
+                        emptyOption,
+                      ];
+                    }
+                  }
                   return (
                     <FormInput
-                      type={f.type}
-                      placeholder={f.placeholder}
-                      required={f.required}
-                      value={values[f.key] || ''}
+                      id={f.key}
+                      type="select"
+                      value={selectedId}
                       onChange={e => handleChange(f.key, e.target.value)}
+                      label={f.label}
+                      error={error}
                     >
-                      {finalOptions.map(opt => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name}
-                        </option>
-                      ))}
+                      {finalOptions.map(opt =>
+                        opt ? (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.name}
+                          </option>
+                        ) : null
+                      )}
                     </FormInput>
                   );
                 })()}
 
-                {f.type !== 'file' && f.type !== 'select' && (
+              
+              {f.type === 'date' && (() => {
+                // Get the raw value from form state
+                const rawValue = values[f.key] || null;
+                
+                // Convert to Date object for Flowbite datepicker
+                let dateValue = null;
+                if (rawValue) {
+                  if (typeof rawValue === 'string') {
+                    // Parse DMY format (DD.MM.YYYY or DD/MM/YYYY)
+                    const parts = rawValue.includes('.') ? rawValue.split('.') : rawValue.split('/');
+                    if (parts.length === 3) {
+                      const [day, month, year] = parts.map(Number);
+                      // Create date in local timezone to avoid timezone shifts
+                      dateValue = new Date(year, month - 1, day);
+                    } else {
+                      // Fallback to standard parsing for other formats
+                      dateValue = new Date(rawValue);
+                    }
+                  } else if (rawValue instanceof Date) {
+                    // If it's already a Date object, use it
+                    dateValue = rawValue;
+                  }
+                  
+                  // Ensure the date is valid
+                  if (dateValue && isNaN(dateValue.getTime())) {
+                    dateValue = null;
+                  }
+                }
+                
+                // Determine minimum date based on field type and other field values
+                let minDate;
+                if (f.key === 'freezingDate') {
+                  // Freezing date minimum is today
+                  minDate = new Date();
+                } else if (f.key === 'expirationDate') {
+                  // Expiration date minimum is freezing date (if set) or today
+                  const freezingDateValue = values.freezingDate;
+                  if (freezingDateValue) {
+                    if (typeof freezingDateValue === 'string') {
+                      const parts = freezingDateValue.includes('.') ? freezingDateValue.split('.') : freezingDateValue.split('/');
+                      if (parts.length === 3) {
+                        const [day, month, year] = parts.map(Number);
+                        minDate = new Date(year, month - 1, day);
+                      } else {
+                        minDate = new Date(freezingDateValue);
+                      }
+                    } else if (freezingDateValue instanceof Date) {
+                      minDate = freezingDateValue;
+                    } else {
+                      minDate = new Date();
+                    }
+                  } else {
+                    minDate = new Date();
+                  }
+                } else {
+                  // Default minimum date is today
+                  minDate = new Date();
+                }
+                
+                return (
                   <FormInput
+                    id={f.key}
+                    type={f.type}
+                    required={f.required}
+                    value={dateValue}
+                    onChange={e => handleChange(f.key, e.target.value)}
+                    label={f.label}
+                    error={error}
+                    minDate={minDate}
+                  />
+                );
+              })()}
+
+                  
+
+                {f.type !== 'file' && f.type !== 'select' && f.type !== 'date' &&(
+                  <FormInput
+                    id={f.key}
                     type={f.type}
                     placeholder={f.placeholder}
                     required={f.required}
                     value={values[f.key] || ''}
                     onChange={e => handleChange(f.key, e.target.value)}
+                    label={f.label}
+                    error={error}
                     // minDate={minDate}
                   />
                 )}
               </div>
-            ))
+            )})
           )}
         </BaseModal>
     )

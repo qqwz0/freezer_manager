@@ -17,6 +17,27 @@ function ProductModal({show, onClose, product, unit, category}) {
         return null;
     }
 
+    const handleDownload = async (e) => {
+  e.preventDefault(); // stop any default behavior
+  e.stopPropagation(); // stop modal click bubbling
+
+  try {
+    const response = await fetch(product.qrCodeUrl);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "qrcode.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed:", error);
+  }
+};
+
     return (
     <Modal show={show} onClose={onClose}>
         <ModalHeader>{product.name}</ModalHeader>
@@ -35,14 +56,24 @@ function ProductModal({show, onClose, product, unit, category}) {
                 {product.photoUrl && <li>Picture: <img
                     src={getImageSrc(product.photoUrl)}
                     alt="QR Code"
-                    className="w-10 h-10 rounded-full"
+                    className="w-30 h-30"
                     />
                 </li>}
-                <li>QR Code: <img
-                    src={product.qrCodeUrl}
-                    alt="Product"
-                    className="w-10 h-10 rounded-full"
-                    />
+                <li>QR Code: 
+                    <div className='flex flex-col gap-2'>
+                        <img
+                        src={product.qrCodeUrl}
+                        alt="Product"
+                        className="w-30 h-30"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 max-w-max"
+                        >
+                            Download QR Code
+                        </button>
+                    </div>
                 </li>
             </ul>
         </ModalBody>

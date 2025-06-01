@@ -101,7 +101,7 @@ export default function useFreezers() {
                         ...f, 
                         shelves: [
                             ...f.shelves, 
-                            { id: shelfId, name: shelfName.trim(), products: [] }
+                            { id: shelfId, name: shelfName.trim()}
                         ]
                     }
                     : f
@@ -165,140 +165,72 @@ export default function useFreezers() {
         }
     }, [user]);
 
-    // Add a product to a shelf
-
-    // const addProduct = useCallback(async (freezerId, shelfId, product) => {
-    //     if (!product || !shelfId || !freezerId) return;
-
-    //     try {
-    //         const freezingDateObj = product.freezingDate
-    //             ? new Date(product.freezingDate)
-    //             : null;
-    //         const expirationDateObj = product.expirationDate
-    //             ? new Date(product.expirationDate)
-    //             : null;
-    //         const photoFile = product.picture || null;
-
-    //         const {
-    //             id: productId,
-    //             photoUrl,
-    //             qrCodeUrl
-    //         } = await createProduct(
-    //             user.uid,
-    //             freezerId,
-    //             shelfId,
-    //             product.name,
-    //             product.quantity,
-    //             product.unit,
-    //             product.category,
-    //             freezingDateObj,
-    //             expirationDateObj,
-    //             photoFile
-    //         );
-
-    //         setFreezers(prev => 
-    //             prev.map(
-    //                 f => 
-    //                     f.id === freezerId
-    //                     ? {
-    //                         ...f,
-    //                         shelves: f.shelves.map(
-    //                             s =>
-    //                                 s.id === shelfId
-    //                                 ? {
-    //                                     ...s,
-    //                                     products: [
-    //                                         ...s.products,
-    //                                         {
-    //                                             id: productId,
-    //                                             name: product.name,
-    //                                             quantity: product.quantity,
-    //                                             unit: product.unit,
-    //                                             category: product.category,
-    //                                             freezingDate: product.freezingDate,
-    //                                             expirationDate: product.expirationDate,
-    //                                             photoUrl,     
-    //                                             qrCodeUrl     
-    //                                         }
-    //                                     ]
-    //                                 }
-    //                                 : s
-    //                         )
-    //                     }
-    //                     : f 
-    //             )
-    //         )
-    //     console.log('Product added:', product);
-    //     } catch (e) {
-    //         console.error(e);
-    //         setError(e);
-    //     }
-    // }, [user]);
 
     const parseDMY = (str) => {
-  if (!str) return undefined;
-  const parts = str.includes('.') ? str.split('.') : str.split('/');
-  if (parts.length !== 3) return undefined;
-  const [day, month, year] = parts.map(Number);
-  return new Date(year, month - 1, day);
-};
+        if (!str) return undefined;
+        const parts = str.includes('.') ? str.split('.') : str.split('/');
+        if (parts.length !== 3) return undefined;
+        const [day, month, year] = parts.map(Number);
+        return new Date(year, month - 1, day);
+    };
 
 
     const addProduct = useCallback(async (freezerId, shelfId, product) => {
-    if (!product || !shelfId || !freezerId) return;
-    try {
-        const freezingDateObj = product.freezingDate instanceof Date
-            ? product.freezingDate
-            : parseDMY(product.freezingDate);
-        const expirationDateObj = product.expirationDate instanceof Date
-            ? product.expirationDate
-            : parseDMY(product.expirationDate);
+        if (!product || !freezerId) return;
+        try {
+            const freezingDateObj = product.freezingDate instanceof Date
+                ? product.freezingDate
+                : parseDMY(product.freezingDate);
+            const expirationDateObj = product.expirationDate instanceof Date
+                ? product.expirationDate
+                : parseDMY(product.expirationDate);
+            const photoFile = product.picture || null;
 
-        const { id: productId, photoUrl, qrCodeUrl } = await createProduct(
-            user.uid,
-            freezerId,
-            shelfId,
-            product.name,
-            product.quantity,
-            product.unit,
-            product.category,
-            freezingDateObj,
-            expirationDateObj,
-            product.picture || null
-        );
+            const {
+                id: productId,
+                photoUrl,
+                qrCodeUrl
+            } = await createProduct(
+                user.uid,
+                freezerId,
+                shelfId,
+                product.name,
+                product.quantity,
+                product.unit,
+                product.category,
+                freezingDateObj,
+                expirationDateObj,
+                photoFile
+            );
 
-        setFreezers(prev => prev.map(f => f.id === freezerId ? ({
-            ...f,
-            shelves: f.shelves.map(s => s.id === shelfId ? ({
-                ...s,
-                products: [...s.products, {
-                    id: productId,
-                    name: product.name,
-                    quantity: product.quantity,
-                    unit: product.unit,
-                    category: product.category,
-                    freezingDate: freezingDateObj,
-                    expirationDate: expirationDateObj,
-                    photoUrl,
-                    qrCodeUrl
-                }]
-            }) : s)
-        }) : f));
-    } catch (e) {
-        console.error(e);
-        setError(e);
-    }
-}, [user]);
-
+            setFreezers(prev => prev.map(f => f.id === freezerId ? ({
+                ...f,
+                products: [...(f.products || []), {
+                        id: productId,
+                        shelfId: shelfId,
+                        name: product.name,
+                        quantity: product.quantity,
+                        unit: product.unit,
+                        category: product.category,
+                        freezingDate: freezingDateObj,
+                        expirationDate: expirationDateObj,
+                        photoUrl,
+                        qrCodeUrl
+                    }]
+            }) : f));
+        } catch (e) {
+            console.error(e);
+            setError(e);
+        }
+    }, [user]);
 
     const updateProduct = useCallback(async (freezerId, shelfId, productId, updatedProduct) => {
-      if (!updatedProduct || !shelfId || !freezerId) return;
+      if (!updatedProduct || !freezerId) return;
 
       try {
         await editProduct(
           user.uid,
           freezerId,
-          shelfId,
           productId,
           updatedProduct
         );
@@ -309,28 +241,20 @@ export default function useFreezers() {
                         f.id === freezerId
                         ? {
                             ...f,
-                            shelves: f.shelves.map(
-                                s =>
-                                    s.id === shelfId
+                            products: f.products.map(
+                                p => 
+                                    p.id === productId
                                     ? {
-                                        ...s,
-                                        products: s.products.map(
-                                            p => 
-                                                p.id === updatedProduct.id
-                                                ? {
-                                                    ...p,
-                                                    ...updatedProduct,
-                                                    freezingDate: typeof updatedProduct.freezingDate === 'string'
-                                                        ? new Date(updatedProduct.freezingDate)
-                                                        : updatedProduct.freezingDate,
-                                                    expirationDate: typeof updatedProduct.expirationDate === 'string'
-                                                        ? new Date(updatedProduct.expirationDate)
-                                                        : updatedProduct.expirationDate
-                                                }
-                                                : p
-                                        )
+                                        ...p,
+                                        ...updatedProduct,
+                                        freezingDate: typeof updatedProduct.freezingDate === 'string'
+                                            ? new Date(updatedProduct.freezingDate)
+                                            : updatedProduct.freezingDate,
+                                        expirationDate: typeof updatedProduct.expirationDate === 'string'
+                                            ? new Date(updatedProduct.expirationDate)
+                                            : updatedProduct.expirationDate
                                     }
-                                    : s
+                                    : p
                             )
                         }
                         : f 
@@ -343,11 +267,11 @@ export default function useFreezers() {
     }, [user]);
 
     const removeProduct = useCallback(async (freezerId, shelfId, productId) => {
-       if (!productId || !shelfId || !freezerId) return;
+       if (!productId || !freezerId) return;
 
       try {
         // 1) Видаляємо з Firestore
-        await deleteProduct(user.uid, freezerId, shelfId, productId)
+        await deleteProduct(user.uid, freezerId, productId)
 
         // 2) Оновлюємо локальний стейт для миттєвого ререндеру
         setFreezers(prev => 
@@ -356,15 +280,7 @@ export default function useFreezers() {
                         f.id === freezerId
                         ? {
                             ...f,
-                            shelves: f.shelves.map(
-                                s =>
-                                    s.id === shelfId
-                                    ? {
-                                        ...s,
-                                        products: s.products.filter(p => p.id !== productId)
-                                    }
-                                    : s
-                            )
+                            products: f.products.filter(p => p.id !== productId)
                         }
                         : f 
                 )
@@ -376,6 +292,18 @@ export default function useFreezers() {
     },
     [user]
   )
+
+  const getUnassignedProducts = useCallback(() => {
+    return freezers.flatMap(freezer =>
+      (freezer.products || [])
+        .filter(product => product.shelfId === '')
+        .map(product => ({
+          ...product,
+          freezerId: freezer.id
+        }))
+    );
+  }, [freezers]);
+
 
     return {
         freezers,
@@ -390,5 +318,6 @@ export default function useFreezers() {
         addProduct,
         updateProduct,
         removeProduct,
+        getUnassignedProducts
     }
 }
