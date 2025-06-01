@@ -1,6 +1,7 @@
 import React from 'react';
 import { signup, login } from '../firebase/auth';
 import AuthForm from 'auth/components/AuthForm';
+import { Header } from 'shared/ui';
 
 export default function SignUp() {
   const handleSignup = async (email, password) => {
@@ -11,11 +12,14 @@ export default function SignUp() {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center gap-3 h-full w-full'>
-      <AuthForm
-        text="Sign Up"
-        onSubmit={handleSignup}
-      />
-    </div>
+    <>
+      <Header />
+      <div className='flex flex-col items-center justify-center gap-3 h-full w-full'>
+        <AuthForm
+          text="Sign Up"
+          onSubmit={handleSignup}
+        />
+      </div>
+    </>
   );
 }

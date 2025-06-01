@@ -5,7 +5,10 @@
   padding: 2rem;
   text-align: center;
   width: 100%;
+  /* FIXED: Add overflow-x hidden */
+  overflow-x: hidden;
 }
+
 
 .logo {
   height: 6em;
