@@ -3,16 +3,13 @@ import { login } from '../firebase/auth';
 import AuthForm from 'auth/components/AuthForm';
 import { Header } from 'shared/ui';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function Login() {
   const handleLogin = async (email, password) => {
-    try {
-      const user = await login(email, password);
-      alert(`Успішний вхід: ${user.email}`);
-      // Redirect or additional logic after login can be added here
-    } catch (error) {
-      alert(`Помилка входу: ${error.message}`);
-    }
+    const user = await login(email, password);
+    toast(`Успішний вхід: ${user.email}`);
+    return true;
   };
 
   return (

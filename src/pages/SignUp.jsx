@@ -3,13 +3,14 @@ import { signup, login } from '../firebase/auth';
 import AuthForm from 'auth/components/AuthForm';
 import { Header } from 'shared/ui';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function SignUp() {
   const handleSignup = async (email, password) => {
     const user = await signup(email, password);
-    alert(`Успішно зареєстровано: ${user.email}`);
-
-    const loggedInUser = await login(email, password);
+    toast(`Успішно зареєстровано: ${user.email}`);
+    await login(email, password);
+    return true;
   };
 
   return (

@@ -26,7 +26,7 @@ function Home() {
               </p>
               <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
                 <Link to='/signup'>
-                  <Button size="xl" href="/signup" className="px-8 py-3">
+                  <Button size="xl" className="px-8 py-3 justify-self-center w-xl">
                     Get Started
                   </Button>
                 </Link>
@@ -98,7 +98,7 @@ function Home() {
                 Join thousands of users who trust Freezer Manager to keep their inventory organized and safe.
               </p>
               <Link to='/signup'>
-                <Button size="xl" href="/signup" className="px-10 py-3">
+                <Button size="xl" className="px-10 py-3 justify-self-center">
                   Create Free Account
                 </Button>
               </Link>

@@ -38,8 +38,10 @@ export default function AuthForm({ text, onSubmit }) {
     setErrors({});
     
     try {
-      await onSubmit(email, password);
-      navigate('/dashboard');
+      const success = await onSubmit(email, password);
+      if (success) {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Error during authentication:', error);
       setErrors({ general: error.message || 'Authentication failed. Please try again.' });
