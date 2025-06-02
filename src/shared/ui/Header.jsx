@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Navbar, NavbarBrand, NavbarToggle, NavbarCollapse, NavbarLink, Button } from 'flowbite-react';
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarToggle,
+  NavbarCollapse,
+  NavbarLink,
+  Button,
+} from 'flowbite-react';
 import { HiOutlineHome, HiOutlineViewGrid } from 'react-icons/hi';
 import { HiOutlineArchiveBox } from 'react-icons/hi2';
 
@@ -13,21 +20,27 @@ function Header() {
           Freezer Manager
         </span>
       </NavbarBrand>
-      
-      <div className="flex md:order-2 gap-2">
-        <Link to="/login">
-          <Button color="light" size="sm">
-            Login
-          </Button>
-        </Link>
-        <Link to="/signup">
-          <Button color="blue" size="sm">
-            Sign Up
-          </Button>
-        </Link>
+
+      {/* 
+        Inline buttons: hidden by default,
+        become flex only at viewport ≥ 425px 
+      */}
+      <div className="flex order-2 items-center gap-2">
+        <div className="hidden [@media(min-width:425px)]:flex gap-2">
+          <Link to="/login">
+            <Button color="light" size="sm">
+              Login
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button color="blue" size="sm">
+              Sign Up
+            </Button>
+          </Link>
+        </div>
         <NavbarToggle />
       </div>
-      
+
       <NavbarCollapse>
         <NavbarLink as={Link} to="/" className="flex items-center gap-2">
           <HiOutlineHome className="h-4 w-4" />
@@ -36,6 +49,25 @@ function Header() {
         <NavbarLink as={Link} to="/dashboard" className="flex items-center gap-2">
           <HiOutlineViewGrid className="h-4 w-4" />
           Dashboard
+        </NavbarLink>
+
+        {/*
+          On small screens (< 425px), show Login/Sign Up inside collapse.
+          So we make these block by default, then hide at ≥ 425px.
+        */}
+        <NavbarLink
+          as={Link}
+          to="/login"
+          className="block mt-2 [@media(min-width:425px)]:hidden"
+        >
+          Login
+        </NavbarLink>
+        <NavbarLink
+          as={Link}
+          to="/signup"
+          className="block [@media(min-width:425px)]:hidden"
+        >
+          Sign Up
         </NavbarLink>
       </NavbarCollapse>
     </Navbar>

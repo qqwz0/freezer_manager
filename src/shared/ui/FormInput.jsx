@@ -17,25 +17,25 @@ export default function FormInput({
   required,
   minDate, 
   children,
-  label,  // New label prop
-  id,     // New id prop for accessibility
+  label,
+  id,
   error
 }) {
-  // Generate unique ID if not provided
   const generatedId = useId();
   const inputId = id || generatedId;
 
-  // Normalize values to prevent controlled/uncontrolled switching
   const normalizedValue = value ?? '';
   const normalizedDateValue = value || null;
 
   return (
     <>
-        <Label 
-          htmlFor={inputId} 
-          className="block mb-2 text-sm font-medium text-gray-700"
-        >{label}</Label>
-      
+      <Label 
+        htmlFor={inputId} 
+        className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
+      >
+        {label}
+      </Label>
+
       {type === 'select' && (
         <Select 
           id={inputId} 
@@ -80,7 +80,9 @@ export default function FormInput({
         />
       )}
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
     </>
   );
 }

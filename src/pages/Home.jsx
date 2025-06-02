@@ -3,6 +3,7 @@ import { Button, Card } from 'flowbite-react';
 import { HiOutlineChartBar, HiOutlineShieldCheck, HiOutlineClock } from 'react-icons/hi';
 import { HiOutlineArchiveBox } from 'react-icons/hi2';
 import { Header } from 'shared/ui';
+import { Link } from 'react-router-dom';
 
 function Home() {
   return (
@@ -24,12 +25,11 @@ function Home() {
                 Keep track of your frozen inventory with ease. Manage stock, and never lose track of your frozen goods again.
               </p>
               <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-                <Button size="xl" href="/signup" className="px-8 py-3">
-                  Get Started
-                </Button>
-                <Button color="light" size="xl" href="/dashboard" className="px-8 py-3">
-                  View Dashboard
-                </Button>
+                <Link to='/signup'>
+                  <Button size="xl" href="/signup" className="px-8 py-3">
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -55,7 +55,7 @@ function Home() {
                 <h3 className="mb-4 text-xl font-bold text-white">
                   Real-time Monitoring
                 </h3>
-                <p className="text-gray-500 leading-relaxed">
+                <p className="text-gray-400 leading-relaxed">
                   Monitor expiration dates of all your products in real-time with alerts.
                 </p>
               </Card>
@@ -67,7 +67,7 @@ function Home() {
                 <h3 className="mb-4 text-xl font-bold text-white">
                   Smart Alerts
                 </h3>
-                <p className="text-gray-500 leading-relaxed">
+                <p className="text-gray-400 leading-relaxed">
                    Use QR-Codes for products easy and efficient product management.
                 </p>
               </Card>
@@ -79,7 +79,7 @@ function Home() {
                 <h3 className="mb-4 text-xl font-bold text-white">
                   Inventory Tracking
                 </h3>
-                <p className="text-gray-500 leading-relaxed">
+                <p className="text-gray-400 leading-relaxed">
                   Keep detailed records of what's in each freezer with expiration dates and stock levels.
                 </p>
               </Card>
@@ -97,9 +97,11 @@ function Home() {
               <p className="mb-8 font-light text-gray-300 text-lg leading-relaxed">
                 Join thousands of users who trust Freezer Manager to keep their inventory organized and safe.
               </p>
-              <Button size="xl" href="/signup" className="px-10 py-3">
-                Create Free Account
-              </Button>
+              <Link to='/signup'>
+                <Button size="xl" href="/signup" className="px-10 py-3">
+                  Create Free Account
+                </Button>
+              </Link>
             </div>
           </div>
         </section>

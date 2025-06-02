@@ -31,11 +31,22 @@ body {
   display: flex;
   place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   justify-content: center;
   /* FIXED: Use 100% instead of 100vw */
   width: 100%;
 }
+
+/* У вашому global.css або tailwind.css */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #374151 inset; /* темно-сірий фон (gray-700) */
+  box-shadow: 0 0 0px 1000px #374151 inset;
+  -webkit-text-fill-color: #f9fafb; /* білий текст (gray-50) */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {
