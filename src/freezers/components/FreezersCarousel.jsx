@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation, EffectCoverflow } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import 'swiper/css/effect-coverflow';
 
 import { ActionButton, FormModal, QrScannerModal } from 'shared/ui';
 import { useModal, useQrScanner } from 'shared/hooks';
@@ -10,7 +11,6 @@ import { formatDMY } from 'shared/utils';
 
 import { Freezer } from 'freezers/components';
 import { useFreezers, useCategories } from 'freezers/hooks';
-
 
 export default function FreezerCarousel() {
   const { config, open, close } = useModal();
@@ -32,7 +32,7 @@ export default function FreezerCarousel() {
 
   const { categories, units } = useCategories();
 
-    function findProductLocation(freezers, productId) {
+  function findProductLocation(freezers, productId) {
     for (const freezer of freezers) {
         const product = freezer.products.find(p => p.id === productId);
         if (product) {
@@ -41,7 +41,6 @@ export default function FreezerCarousel() {
     }
     return null;
   }
-
 
   const { showScanner, openScanner, closeScanner, scanResult, scanError, qrContainerId } = 
     useQrScanner({
@@ -85,70 +84,151 @@ export default function FreezerCarousel() {
       }
     })
 
-  if (loading) return <div>Loading…</div>;
-  if (error)   return <div>Error: {error.message}</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="relative">
+        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="mt-4 text-lg font-medium text-gray-600 dark:text-gray-300 animate-pulse">
+          Loading freezers...
+        </div>
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 max-w-md">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mr-3">
+            <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-red-800 dark:text-red-200 font-medium">Error loading freezers</h3>
+            <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error.message}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <>
+    <div className="relative w-full min-h-screen">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-900/10 dark:to-purple-900/10 pointer-events-none"></div>
+      
       <Swiper
-        modules={[Navigation]}
-        spaceBetween={10}
+        modules={[Navigation, EffectCoverflow]}
+        spaceBetween={30}
         slidesPerView={1}
         loop={false}
-        navigation
-        style={{ width: '100%', height: '100%' }}
+        navigation={{
+          nextEl: '.swiper-button-next-custom',
+          prevEl: '.swiper-button-prev-custom',
+        }}
+        effect="coverflow"
+        coverflowEffect={{
+          rotate: 15,
+          stretch: 0,
+          depth: 200,
+          modifier: 1,
+          slideShadows: true,
+        }}
+        style={{ width: '100%', height: '100%', padding: '20px 0' }}
         observer={true}
         observeParents={true}
         observeSlideChildren={true}
         className='w-full h-full flex justify-center items-center'
       >
         {freezers.map((fr) => (
-          <SwiperSlide key={fr.id}>
-            <Freezer 
-              freezerData={fr} 
-              onDeleteFreezer={() => deleteFreezer(fr.id)}
-              onEditFreezer={newName => updateFreezer(fr.id, newName)}
-              onAddShelf={shelfName => addShelf(fr.id, shelfName)}
-              onUpdateShelf={(shelfId, newName) => updateShelf(fr.id, shelfId, newName)}
-              onRemoveShelf={shelfId => removeShelf(fr.id, shelfId)}
-              onAddProduct={(shelfId, product) => addProduct(fr.id, shelfId, product)}
-              onUpdateProduct={(shelfId, productId, newProduct) => updateProduct(fr.id, shelfId, productId, newProduct)}
-              onRemoveProduct={(shelfId, productId) => removeProduct(fr.id, shelfId, productId)}
-            />
+          <SwiperSlide key={fr.id} className="flex items-center justify-center">
+            <div className="w-full max-w-3xl">
+              <Freezer 
+                freezerData={fr} 
+                onDeleteFreezer={() => deleteFreezer(fr.id)}
+                onEditFreezer={newName => updateFreezer(fr.id, newName)}
+                onAddShelf={shelfName => addShelf(fr.id, shelfName)}
+                onUpdateShelf={(shelfId, newName) => updateShelf(fr.id, shelfId, newName)}
+                onRemoveShelf={shelfId => removeShelf(fr.id, shelfId)}
+                onAddProduct={(shelfId, product) => addProduct(fr.id, shelfId, product)}
+                onUpdateProduct={(shelfId, productId, newProduct) => updateProduct(fr.id, shelfId, productId, newProduct)}
+                onRemoveProduct={(shelfId, productId) => removeProduct(fr.id, shelfId, productId)}
+              />
+            </div>
           </SwiperSlide>
         ))}
-          <SwiperSlide className='flex-col gap-2'>
-            <ActionButton 
-              label="Freezer" 
-              onClick={() =>
-                  open({
-                    mode: 'add',
-                    title: "Freezer",
-                    onSubmit: ({ name }) => {addFreezer(name)},
-                    fields: [
-                      { key: 'name', label: 'Frezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
-                    ],
-                  })
-                }
-              action="add" 
-              className="w-1/5"/>
-            <ActionButton
-              label="Scan Freezer"
-              onClick={openScanner}
-              action="scan"
-              className="w-1/5 mt-2"
-            />
-          </SwiperSlide>
+        
+        <SwiperSlide className='flex items-center justify-center'>
+          <div className="flex flex-col items-center justify-center gap-8 p-12 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-800/30 backdrop-blur-sm">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                Manage your freezers
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">Create a new freezer or add/edit a product with QR-code</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="group">
+                <ActionButton 
+                  label="New Freezer" 
+                  onClick={() =>
+                      open({
+                        mode: 'add',
+                        title: "Freezer",
+                        onSubmit: ({ name }) => {addFreezer(name)},
+                        fields: [
+                          { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+                        ],
+                      })
+                    }
+                  action="add" 
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-blue-500/25"
+                />
+                <div className="text-center mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Create from scratch
+                </div>
+              </div>
+
+              <p>or</p>
+              
+              <div className="group">
+                <ActionButton
+                  label="Scan QR Code"
+                  onClick={openScanner}
+                  action="scan"
+                  className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-purple-500/25"
+                />
+                <div className="text-center mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Scan existing freezer
+                </div>
+              </div>
+            </div>
+          </div>
+        </SwiperSlide>
       </Swiper>
 
+      {/* Custom navigation buttons */}
+      <div className="swiper-button-prev-custom absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 border border-gray-200 dark:border-gray-700">
+        <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </div>
+      
+      <div className="swiper-button-next-custom absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 border border-gray-200 dark:border-gray-700">
+        <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+
       <FormModal
-              show={config.mode !== null}
-              mode={config.mode}
-              title={config.title}
-              fields={config.fields}
-              initialData={config.initialData}
-              onSubmit={config.onSubmit}
-              onClose={close}
+        show={config.mode !== null}
+        mode={config.mode}
+        title={config.title}
+        fields={config.fields}
+        initialData={config.initialData}
+        onSubmit={config.onSubmit}
+        onClose={close}
       />
 
       <QrScannerModal 
@@ -158,6 +238,6 @@ export default function FreezerCarousel() {
         scanResult={scanResult}
         qrContainerId={qrContainerId}
       />
-    </>
+    </div>
   );
 }

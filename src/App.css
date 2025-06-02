@@ -7,6 +7,7 @@
   width: 100%;
   /* FIXED: Add overflow-x hidden */
   overflow-x: hidden;
+  height: 100%;
 }
 
 

@@ -84,6 +84,11 @@ input:-webkit-autofill:focus {
   align-items: center !important;
 }
 
+.swiper-wrapper {
+  align-items: center;
+  display: flex;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

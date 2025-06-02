@@ -25,11 +25,11 @@ function Header() {
   };
 
   return (
-    <Navbar fluid rounded className="bg-white shadow-sm">
+    <Navbar fluid rounded className="bg-white dark:bg-gray-900 shadow-md border-b border-gray-200 dark:border-0"> 
       {/* Brand / Logo */}
       <NavbarBrand as={Link} to="/">
         <HiOutlineArchiveBox className="mr-3 h-6 w-6 text-blue-600" />
-        <span className="self-center whitespace-nowrap text-xl font-semibold text-white">
+        <span className="self-center whitespace-nowrap text-xl font-semibold text-gray-900 dark:text-white">
           Freezer Manager
         </span>
       </NavbarBrand>
@@ -63,47 +63,43 @@ function Header() {
           )}
         </div>
 
-        {/* This is the hamburger toggle for small screens */}
+        {/* Hamburger toggle (for mobile) */}
         <NavbarToggle />
       </div>
 
       {/* Collapsible menu (mobile) */}
       <NavbarCollapse>
-        {/* Always visible link */}
-        <NavbarLink as={Link} to="/" className="flex items-center gap-2">
+        <NavbarLink as={Link} to="/" className="flex items-center gap-2 text-gray-900 dark:text-white">
           <HiOutlineHome className="h-4 w-4" />
           Home
         </NavbarLink>
 
-        {/* Dashboard link if logged in */}
         {user && (
-          <NavbarLink as={Link} to="/dashboard" className="flex items-center gap-2">
+          <NavbarLink as={Link} to="/dashboard" className="flex items-center gap-2 text-gray-900 dark:text-white">
             <HiOutlineViewGrid className="h-4 w-4" />
             Dashboard
           </NavbarLink>
         )}
 
-        {/* Mobile-only: show “Login/Sign Up” when not logged in */}
         {!user && (
           <>
             <NavbarLink
               as={Link}
               to="/login"
-              className="block mt-2 sm:hidden"
+              className="block mt-2 sm:hidden text-gray-900 dark:text-white"
             >
               Login
             </NavbarLink>
             <NavbarLink
               as={Link}
               to="/signup"
-              className="block mt-2 sm:hidden"
+              className="block mt-2 sm:hidden text-gray-900 dark:text-white"
             >
               Sign Up
             </NavbarLink>
           </>
         )}
 
-        {/* Mobile-only: show email + “Log out” when logged in */}
         {user && (
           <>
             <NavbarLink
@@ -115,7 +111,7 @@ function Header() {
             <NavbarLink
               as={Link}
               onClick={handleLogout}
-              className="block mt-2 text-left sm:hidden"
+              className="block mt-2 text-left text-gray-900 dark:text-white sm:hidden"
             >
               Log out
             </NavbarLink>
