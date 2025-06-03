@@ -19,11 +19,11 @@ function QrScannerModal({
           {/* Container for Html5QrcodeScanner */}
           <div id={qrContainerId} className="w-full" />
 
-          {scanResult && (
+          {/* {scanResult && (
             <p className="text-sm text-green-700">
               Scanned: <strong>{scanResult}</strong>
             </p>
-          )}
+          )} */}
 
           <Button color="gray" onClick={onClose}>
             Cancel

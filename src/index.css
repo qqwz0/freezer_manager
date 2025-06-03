@@ -152,6 +152,28 @@ input:-webkit-autofill:focus {
   background: rgba(16, 185, 129, 0.1) !important; /* Light green tint */
 }
 
+#html5-qrcode-button-camera-permission {
+  background-color: #4CAF50;      /* Зелений */
+  color: white;                   /* Білий текст */
+  padding: 10px 20px;             /* Відступи */
+  font-size: 16px;                /* Розмір шрифту */
+  border: none;                   /* Без рамки */
+  border-radius: 8px;             /* Скруглені кути */
+  cursor: pointer;                /* Курсор при наведенні */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легка тінь */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#html5-qrcode-button-camera-permission:hover {
+  background-color: #45a049;     /* Темніший зелений при наведенні */
+  transform: scale(1.02);        /* Легка анімація */
+}
+
+#html5-qrcode-button-camera-permission:active {
+  background-color: #3e8e41;     /* Ще темніший при кліку */
+  transform: scale(0.98);        /* Натискання */
+}
+
 
 @media (prefers-color-scheme: light) {
   :root {

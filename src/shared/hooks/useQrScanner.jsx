@@ -24,7 +24,8 @@ function useQrScanner({ onScanSuccess, onScanError }) {
     (errorMessage) => {
       if (
         errorMessage.includes('NotFoundException') ||
-        errorMessage.includes('IndexSizeError')
+        errorMessage.includes('IndexSizeError') ||
+        errorMessage.incudes('MultiFormat')
       ) {
         return;
       }
