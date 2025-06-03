@@ -6,7 +6,7 @@ import {
 import { useAuth } from 'contexts/AuthContext';
 
 export default function useFreezers() {
-    const user = useAuth();
+    const {user, loading} = useAuth();
     const [categories, setCategories] = useState([]);
     const [units, setUnits] = useState([])
     const [error, setError] = useState(null);

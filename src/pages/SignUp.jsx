@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 export default function SignUp() {
   const handleSignup = async (email, password) => {
     const user = await signup(email, password);
-    toast(`Успішно зареєстровано: ${user.email}`);
+    toast.success(`Успішно зареєстровано: ${user.email}`);
     await login(email, password);
     return true;
   };

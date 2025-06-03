@@ -89,6 +89,70 @@ input:-webkit-autofill:focus {
   display: flex;
 }
 
+/* App.css */
+#html5-qrcode-button-camera-stop {
+  background: linear-gradient(135deg, #ff4e50, #f9d423) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.75rem !important; /* 12px */
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+#html5-qrcode-button-camera-stop:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+#html5-qrcode-button-camera-stop:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* App.css */
+#html5-qrcode-button-camera-start {
+  background: linear-gradient(135deg, #34D399, #10B981) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.75rem !important; /* 12px */
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+#html5-qrcode-button-camera-start:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+#html5-qrcode-button-camera-start:active {
+  transform: scale(0.97) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* App.css */
+#html5-qrcode-anchor-scan-type-change {
+  display: inline-block !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  color: #10B981 !important;              /* Green text */
+  font-weight: 600 !important;             /* Semi-bold */
+  padding: 0.5rem 1rem !important;         /* Vertical and horizontal padding */
+  border-radius: 0.5rem !important;        /* 8px rounding */
+  transition: color 0.3s ease, background 0.3s ease !important;
+}
+
+#html5-qrcode-anchor-scan-type-change:hover {
+  color: #059669 !important;               /* Darker green on hover */
+  background: rgba(16, 185, 129, 0.1) !important; /* Light green tint */
+}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

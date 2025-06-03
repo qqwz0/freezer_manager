@@ -12,6 +12,8 @@ import { formatDMY } from 'shared/utils';
 import { Freezer } from 'freezers/components';
 import { useFreezers, useCategories } from 'freezers/hooks';
 
+import { toast } from 'react-toastify';
+
 export default function FreezerCarousel() {
   const { config, open, close } = useModal();
   
@@ -47,7 +49,11 @@ export default function FreezerCarousel() {
       onScanSuccess: (decodedText) => {
         console.log('scanned:', decodedText);
         const found = findProductLocation(freezers, decodedText);
-        if (!found) return alert("Product not found.");
+
+        if (!found) {
+          toast.error("Product not found.");
+          return;
+        }
 
         const { freezerId, product } = found;
         const freezer = freezers.find(f => f.id === freezerId);
@@ -85,8 +91,8 @@ export default function FreezerCarousel() {
     })
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="relative">
+    <div className="flex items-center justify-center h-screen">
+      <div className="relative flex flex-col items-center">
         <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
         <div className="mt-4 text-lg font-medium text-gray-600 dark:text-gray-300 animate-pulse">
           Loading freezers...

@@ -16,12 +16,7 @@ function Dashboard() {
       <div className="relative z-10 ">
         <Header />
 
-        {/* Carousel container */}
-        {/* <div className='h-full flex items-center justify-center px-4 max-w-screen'>
-          <div className="w-full max-w-7xl"> */}
-            <FreezersCarousel />
-          {/* </div>
-        </div> */}
+        <FreezersCarousel />
 
         {/* Bottom decorative elements */}
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/50 to-transparent dark:from-gray-900/50 pointer-events-none"></div>

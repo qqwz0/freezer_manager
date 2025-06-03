@@ -1,40 +1,42 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
-console.log(Html5QrcodeScanner)
-
 function useQrScanner({ onScanSuccess, onScanError }) {
-    const [showScanner, setShowScanner] = useState(false);
-    const [scanResult, setScanResult] = useState(null);
-    const [scanError, setScanError] = useState(null);
-    const qrScannerRef = useRef(null);
-    const qrContainerId = 'qr-reader-container';
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [scanError, setScanError] = useState(null);
+  const qrScannerRef = useRef(null);
+  const qrContainerId = 'qr-reader-container';
 
-    const handleSuccess = useCallback((decodedText) => {
-        if (!decodedText) return;
-        setScanResult(decodedText);
-        onScanSuccess?.(decodedText);
+  // Тепер ми просто повідомляємо про результат декодування,
+  // але НЕ виконуємо clear() тут.
+  const handleSuccess = useCallback(
+    (decodedText) => {
+      if (!decodedText) return;
+      setScanResult(decodedText);
+      onScanSuccess?.(decodedText);
+      // НЕ кличемо qrScannerRef.current.clear() тут
+    },
+    [onScanSuccess]
+  );
 
-        if (qrScannerRef.current) {
-          qrScannerRef.current.clear().catch((e) => {
-          console.warn('Failed to stop QR scanner: ', e);
-        });
-
-        qrScannerRef.current = null;
+  const handleError = useCallback(
+    (errorMessage) => {
+      if (
+        errorMessage.includes('NotFoundException') ||
+        errorMessage.includes('IndexSizeError')
+      ) {
+        return;
       }
-    }, [onScanSuccess]);
+      setScanError(errorMessage);
+      if (onScanError) onScanError(errorMessage);
+    },
+    [onScanError]
+  );
 
-    const handleError = useCallback((errorMessage) => {
-        if (errorMessage.includes('NotFoundException') || errorMessage.includes('IndexSizeError')) {
-          return;
-        }
-        setScanError(errorMessage);
-        if (onScanError) onScanError(errorMessage);
-    }, [onScanError]);
-
-    useEffect(() => {
+  useEffect(() => {
     if (!showScanner) {
-      // If turning off, clear any existing scanner instance
+      // Якщо showScanner = false, очищаємо існуючий екземпляр
       if (qrScannerRef.current) {
         qrScannerRef.current.clear().catch((e) => {
           console.warn('Failed to clear QR scanner:', e);
@@ -44,15 +46,13 @@ function useQrScanner({ onScanSuccess, onScanError }) {
       return;
     }
 
-    // Відкладена ініціалізація, щоб контейнер точно зʼявився
+    // Ініціалізуємо сканер тільки коли showScanner = true
     const initTimer = setTimeout(() => {
       const container = document.getElementById(qrContainerId);
       if (!container) {
-        // Якщо й після 300 мс контейнера немає — вивести помилку
         setScanError('QR container not found');
         return;
       }
-      // Якщо сканера ще не створено — створюємо його
       if (!qrScannerRef.current) {
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
         const verbose = false;
@@ -60,11 +60,10 @@ function useQrScanner({ onScanSuccess, onScanError }) {
         scanner.render(handleSuccess, handleError);
         qrScannerRef.current = scanner;
       }
-    }, 300); // 300 мс має вистачити, щоб модалка змогла промалюватися
+    }, 300);
 
-    // Cleanup on unmount
     return () => {
-      if (initTimer) clearTimeout(initTimer);
+      clearTimeout(initTimer);
       if (qrScannerRef.current) {
         qrScannerRef.current.clear().catch((e) => {
           console.warn('Cleanup: Failed to clear QR scanner:', e);
@@ -86,6 +85,14 @@ function useQrScanner({ onScanSuccess, onScanError }) {
     setScanResult('');
   };
 
-  return { showScanner, openScanner, closeScanner, scanResult, scanError, qrContainerId };
+  return {
+    showScanner,
+    openScanner,
+    closeScanner,
+    scanResult,
+    scanError,
+    qrContainerId,
+  };
 }
-export default useQrScanner
+
+export default useQrScanner;

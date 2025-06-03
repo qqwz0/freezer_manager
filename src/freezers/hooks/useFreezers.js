@@ -14,7 +14,7 @@ import {
 import { useAuth } from 'contexts/AuthContext';
 
 export default function useFreezers() {
-    const user = useAuth();
+    const { user, _ } = useAuth();
     const [freezers, setFreezers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
