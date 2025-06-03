@@ -3,7 +3,7 @@ import {
   getAllCategories,
   getAllUnits
 } from 'services/firestoreService';
-import { useAuth } from 'contexts/AuthContext';
+import { useAuth } from 'auth';
 
 export default function useFreezers() {
     const {user, loading} = useAuth();

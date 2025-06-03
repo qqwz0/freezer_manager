@@ -10,15 +10,18 @@ import {
 } from 'flowbite-react';
 import { HiOutlineHome, HiOutlineViewGrid } from 'react-icons/hi';
 import { HiOutlineArchiveBox } from 'react-icons/hi2';
-import { useAuth } from 'contexts/AuthContext';
+import { useAuth } from 'auth';
 import { logout } from 'services/auth';
 
 function Header() {
-  const user = useAuth();
+  const {user, loading, logout} = useAuth();
+   console.log('Header user:', user);
 
   const handleLogout = async () => {
     try {
+      console.log('Calling logout()');
       await logout();
+      console.log('After logout, user:', user);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -40,9 +43,6 @@ function Header() {
         <div className="hidden sm:flex gap-2">
           {user ? (
             <>
-              <span className="text-sm text-gray-700 dark:text-white self-center">
-                {user.email}
-              </span>
               <Button color="gray" size="sm" onClick={handleLogout}>
                 Log out
               </Button>
@@ -102,12 +102,6 @@ function Header() {
 
         {user && (
           <>
-            <NavbarLink
-              as="span"
-              className="block mt-2 text-gray-700 dark:text-white sm:hidden"
-            >
-              {user.email}
-            </NavbarLink>
             <NavbarLink
               as={Link}
               onClick={handleLogout}

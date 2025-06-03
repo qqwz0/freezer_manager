@@ -1,6 +1,7 @@
-import React from 'react'
-import { FreezersCarousel } from 'freezers/components'
+import React, {lazy} from 'react'
 import { Header } from 'shared/ui'
+
+const FreezersCarousel = lazy(() => import('freezers/components/FreezersCarousel'))
 
 function Dashboard() {
   return (

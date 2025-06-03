@@ -1,23 +1,21 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
-import { Timestamp } from 'firebase/firestore';
 import { formatDMY } from 'shared/utils';
 import { useCategories } from 'freezers/hooks';
 
+function getImageSrc(image) {
+    if (!image) return null;
+    if (typeof image === 'string') return image;
+    if (image instanceof File) {
+        return URL.createObjectURL(image);
+    }
+    return null;
+}
+
 function ProductModal({show, onClose, product, unit, category}) {
     if (!product) return null;
-    const { getCategory } = useCategories();
 
-    function getImageSrc(image) {
-        if (!image) return null;
-        if (typeof image === 'string') return image;
-        if (image instanceof File) {
-            return URL.createObjectURL(image);
-        }
-        return null;
-    }
-
-    const handleDownload = async (e) => {
+    const handleDownload = useCallback(async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -36,7 +34,7 @@ function ProductModal({show, onClose, product, unit, category}) {
         } catch (error) {
             console.error("Download failed:", error);
         }
-    };
+    }, [product.qrCodeUrl, product.name])
 
     return (
         <Modal show={show} onClose={onClose} size="lg">

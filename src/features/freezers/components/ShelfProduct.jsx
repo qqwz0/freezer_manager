@@ -1,24 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Card } from 'flowbite-react'
 import { ActionButton, FormModal } from 'shared/ui'
 import { useModal } from 'shared/hooks'
 import { ProductModal } from 'freezers/components'
 import { formatDMY } from 'shared/utils'
 
-import { useCategories } from 'freezers/hooks'
-
 function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, categories, units, shelves }) {
   const [showProductModal, setShowProductModal] = useState(false)
 
   const { config, open, close } = useModal();
 
-  const category = categories.find(cat => cat.id === product.category);
-  const unit = units.find(un => un.id === product.unit);
+  const category = useMemo(
+    () => categories.find(cat => cat.id === product.category), 
+    [product.category, categories]
+  )
+  const unit = useMemo(
+    () => units.find(un => un.id === product.unit), 
+    [product.unit, units]
+  )
 
-  // Calculate expiration status
-  const getExpirationStatus = () => {
+  const expirationInfo = useMemo(() => {
     if (!product.expirationDate) return null;
-    
+
     const today = new Date();
     const expDate = product.expirationDate?.toDate ? product.expirationDate.toDate() : new Date(product.expirationDate);
     const daysDiff = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
@@ -27,20 +30,61 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
     if (daysDiff <= 3) return { status: 'expiring', days: daysDiff, color: 'orange' };
     if (daysDiff <= 7) return { status: 'soon', days: daysDiff, color: 'yellow' };
     return { status: 'fresh', days: daysDiff, color: 'green' };
-  };
+  }, [product.expirationDate])
 
-  const expirationInfo = getExpirationStatus();
+  const DefaultCategoryIcon = () => (
+    <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+  );
 
-  // Get default category icon if no image
-  const getCategoryIcon = (categoryName) => {
-    if (!categoryName) return (
-      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    );
-  };
+  const handleEditClick = useCallback((e) => {
+    e.stopPropagation();
+    open({
+      mode: 'edit',
+      title: "Edit Product",
+      onSubmit: (newProduct) => {
+        onUpdateProduct(shelfId, product.id, newProduct);
+      },
+      fields: [
+        { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
+        { key: 'shelfId', label: 'Shelf', type: 'select', options: shelves, required: false },
+        { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
+        { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
+        { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
+        { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
+        { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
+        { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
+      ],
+      initialData: {
+        id: product.id,
+        name: product.name,
+        shelfId: shelfId,
+        quantity: product.quantity,
+        unit: product.unit,
+        category: product.category || '',
+        freezingDate: product.freezingDate?.toDate ? product.freezingDate.toDate() : product.freezingDate,
+        expirationDate: product.expirationDate?.toDate ? product.expirationDate.toDate() : product.expirationDate,
+        photoUrl: product.photoUrl || '',
+      }
+    });
+  }, [open, onUpdateProduct, product.id, shelfId, categories, units, shelves])
 
-  console.log(product)
+  const handleDeleteClick = useCallback((e) => {
+    e.stopPropagation();
+    open({
+      mode: 'delete',
+      title: "Delete Product",
+      onSubmit: () => {
+        onRemoveProduct(shelfId, product.id);
+        console.log(product.id);
+      },
+    });
+  }, [open, onRemoveProduct, product.id, shelfId])
+
+  const handleCloseModal = useCallback(() => {
+    setShowProductModal(false);
+  }, [])
 
   return (
     <>
@@ -61,7 +105,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
                   className="w-6 h-6 object-cover rounded-md" 
                 />
               ) : (
-                getCategoryIcon(category?.name)
+                <DefaultCategoryIcon />
               )}
             </div>
 
@@ -109,54 +153,12 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
             {/* Action Buttons */}
             <div className="flex gap-1">
               <ActionButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Edit product: ", product);
-                  open({
-                    mode: 'edit',
-                    title: "Edit Product",
-                    onSubmit: (newProduct) => {
-                      console.log('submitted');
-                      onUpdateProduct(shelfId, product.id, newProduct);
-                    },
-                    fields: [
-                      { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
-                      { key: 'shelfId', label: 'Shelf', type: 'select', options: shelves, required: false },
-                      { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-                      { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
-                      { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-                      { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
-                      { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
-                      { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-                    ],
-                    initialData: {
-                      id: product.id,
-                      name: product.name,
-                      shelfId: shelfId,
-                      quantity: product.quantity,
-                      unit: product.unit,
-                      category: product.category || '',
-                      freezingDate: product.freezingDate?.toDate ? product.freezingDate.toDate() : product.freezingDate,
-                      expirationDate: product.expirationDate?.toDate ? product.expirationDate.toDate() : product.expirationDate,
-                      photoUrl: product.photoUrl || '',
-                    }
-                  });
-                }}
+                onClick={handleEditClick}
                 action="edit"
                 className="scale-75 hover:scale-90 transition-transform duration-200"
               />
               <ActionButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open({
-                    mode: 'delete',
-                    title: "Delete Product",
-                    onSubmit: () => {
-                      onRemoveProduct(shelfId, product.id);
-                      console.log(product.id);
-                    },
-                  });
-                }}
+                onClick={handleDeleteClick}
                 action="delete"
                 className="scale-75 hover:scale-90 transition-transform duration-200"
               />
@@ -177,7 +179,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
                   className="w-8 h-8 object-cover rounded-md" 
                 />
               ) : (
-                getCategoryIcon(category?.name)
+                <DefaultCategoryIcon />
               )}
             </div>
 
@@ -229,54 +231,12 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
             {/* Action Buttons */}
             <div className="flex gap-1">
               <ActionButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Edit product: ", product);
-                  open({
-                    mode: 'edit',
-                    title: "Edit Product",
-                    onSubmit: (newProduct) => {
-                      console.log('submitted');
-                      onUpdateProduct(shelfId, product.id, newProduct);
-                    },
-                    fields: [
-                      { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
-                      { key: 'shelfId', label: 'Shelf', type: 'select', options: shelves, required: false },
-                      { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
-                      { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
-                      { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
-                      { key: 'category', label: 'Category', type: 'select', options: categories, required: false },
-                      { key: 'freezingDate', label: 'Freezing Date', type: 'date', placeholder: 'Enter freezing date', required: false },
-                      { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
-                    ],
-                    initialData: {
-                      id: product.id,
-                      name: product.name,
-                      shelfId: shelfId,
-                      quantity: product.quantity,
-                      unit: product.unit,
-                      category: product.category || '',
-                      freezingDate: product.freezingDate?.toDate ? product.freezingDate.toDate() : product.freezingDate,
-                      expirationDate: product.expirationDate?.toDate ? product.expirationDate.toDate() : product.expirationDate,
-                      photoUrl: product.photoUrl || '',
-                    }
-                  });
-                }}
+                onClick={handleEditClick}
                 action="edit"
                 className="scale-90 hover:scale-100"
               />
               <ActionButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open({
-                    mode: 'delete',
-                    title: "Delete Product",
-                    onSubmit: () => {
-                      onRemoveProduct(shelfId, product.id);
-                      console.log(product.id);
-                    },
-                  });
-                }}
+                onClick={handleDeleteClick}
                 action="delete"
                 className="scale-90 hover:scale-100 transition-transform duration-200"
               />
@@ -287,7 +247,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
 
       <ProductModal 
         show={showProductModal} 
-        onClose={() => setShowProductModal(false)} 
+        onClose={handleCloseModal} 
         product={product}
         unit={unit}
         category={category}

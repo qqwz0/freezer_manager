@@ -165,53 +165,57 @@ export default function FreezerCarousel() {
           </SwiperSlide>
         ))}
         
-        <SwiperSlide className='flex items-center justify-center'>
-          <div className="flex flex-col items-center justify-center gap-8 p-12 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-800/30 backdrop-blur-sm">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Manage your freezers
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">Create a new freezer or add/edit a product with QR-code</p>
-            </div>
+       <SwiperSlide className='flex items-center justify-center px-4 py-8 sm:px-0'>
+        <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 p-6 sm:p-12 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-2xl sm:rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-800/30 backdrop-blur-sm w-full max-w-xl">
+          
+          <div className="text-center mb-4 sm:mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Manage your freezers
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Create a new freezer or add/edit a product with QR-code
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full justify-center">
             
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="group">
-                <ActionButton 
-                  label="New Freezer" 
-                  onClick={() =>
-                      open({
-                        mode: 'add',
-                        title: "Freezer",
-                        onSubmit: ({ name }) => {addFreezer(name)},
-                        fields: [
-                          { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
-                        ],
-                      })
-                    }
-                  action="add" 
-                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-blue-500/25"
-                />
-                <div className="text-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Create from scratch
-                </div>
+            <div className="group flex flex-col items-center w-full sm:w-auto">
+              <ActionButton 
+                label="New Freezer" 
+                onClick={() =>
+                  open({
+                    mode: 'add',
+                    title: "Freezer",
+                    onSubmit: ({ name }) => {addFreezer(name)},
+                    fields: [
+                      { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+                    ],
+                  })
+                }
+                action="add" 
+                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-blue-500/25"
+              />
+              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Create from scratch
               </div>
+            </div>
 
-              <p>or</p>
-              
-              <div className="group">
-                <ActionButton
-                  label="Scan QR Code"
-                  onClick={openScanner}
-                  action="scan"
-                  className="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-purple-500/25"
-                />
-                <div className="text-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Scan existing freezer
-                </div>
+            <p className="text-gray-500 dark:text-gray-400">or</p>
+            
+            <div className="group flex flex-col items-center w-full sm:w-auto">
+              <ActionButton
+                label="Scan QR Code"
+                onClick={openScanner}
+                action="scan"
+                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-purple-500/25"
+              />
+              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Scan existing freezer
               </div>
             </div>
           </div>
-        </SwiperSlide>
+        </div>
+      </SwiperSlide>
       </Swiper>
 
       {/* Custom navigation buttons */}

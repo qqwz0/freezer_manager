@@ -1,6 +1,6 @@
 import React from 'react';
-import { signup, login } from '../firebase/auth';
-import AuthForm from 'auth/components/AuthForm';
+import { signup, login } from '../services/auth';
+import {AuthForm} from 'auth/components';
 import { Header } from 'shared/ui';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';

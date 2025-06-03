@@ -1,5 +1,5 @@
 import React from 'react';
-import { login } from '../firebase/auth';
+import { login } from '../services/auth';
 import AuthForm from 'auth/components/AuthForm';
 import { Header } from 'shared/ui';
 import { Link } from 'react-router-dom';
