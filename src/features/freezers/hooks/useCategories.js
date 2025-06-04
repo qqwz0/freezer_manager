@@ -6,7 +6,7 @@ import {
 import { useAuth } from 'auth';
 
 export default function useFreezers() {
-    const {user, loading} = useAuth();
+    const { user, loading } = useAuth();
     const [categories, setCategories] = useState([]);
     const [units, setUnits] = useState([])
     const [error, setError] = useState(null);
@@ -35,13 +35,15 @@ export default function useFreezers() {
     );
 
     const getUnit = useCallback(
-
-    )
+        (id) => units.find(unit => unit.id === id) || null,
+        [units]
+    );
     
     return {
         categories,
         units,
         error,
-        getCategory
+        getCategory,
+        getUnit
     }
 }

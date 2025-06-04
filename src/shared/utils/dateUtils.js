@@ -53,3 +53,10 @@ export function formatDMY(value) {
     return `${day}/${month}/${year}`;
 }
 
+export const parseDMY = (str) => {
+    if (!str) return undefined;
+    const parts = str.includes('.') ? str.split('.') : str.split('/');
+    if (parts.length !== 3) return undefined;
+    const [day, month, year] = parts.map(Number);
+    return new Date(year, month - 1, day);
+};

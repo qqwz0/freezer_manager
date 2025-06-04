@@ -12,6 +12,7 @@ import {
   deleteProduct,
 } from 'services/firestoreService';
 import { useAuth } from 'auth';
+import { parseDMY } from 'shared/utils'
 
 export default function useFreezers() {
     const { user, _ } = useAuth();
@@ -164,16 +165,6 @@ export default function useFreezers() {
             setLoading(false);
         }
     }, [user]);
-
-
-    const parseDMY = (str) => {
-        if (!str) return undefined;
-        const parts = str.includes('.') ? str.split('.') : str.split('/');
-        if (parts.length !== 3) return undefined;
-        const [day, month, year] = parts.map(Number);
-        return new Date(year, month - 1, day);
-    };
-
 
     const addProduct = useCallback(async (freezerId, shelfId, product) => {
         if (!product || !freezerId) return;

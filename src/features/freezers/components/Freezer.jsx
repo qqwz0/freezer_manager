@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card } from 'flowbite-react';
 
 import { Shelf } from 'freezers/components';
@@ -19,6 +19,67 @@ export default function Freezer({
   const { config, open, close } = useModal();
   const [isHovered, setIsHovered] = useState(false);
 
+  const handleEditFreezer = useCallback(() =>
+    open({
+      mode: 'edit',
+      title: "Edit Freezer",
+      onSubmit: data => { onEditFreezer(data.name); },
+      fields: [
+        { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+      ],
+      initialData: { name: freezerData.name }
+    }), [open, onEditFreezer, freezerData.name])
+
+  const handleDeleteFreezer = useCallback(() =>
+    open({
+      mode: 'delete',
+      title: "Delete Freezer",
+      onSubmit: freezerId => {onDeleteFreezer(freezerId)},
+    }), [open, onDeleteFreezer, freezerData.id])
+
+  const handleAddShelf = useCallback(() =>
+      open({
+        mode: 'add',
+        title: "Add New Shelf",
+        onSubmit: ({ name }) => { onAddShelf(name) },
+        fields: [
+          { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
+        ],
+      }), [open, onAddShelf])
+
+  const shelvesList = useMemo(() => {
+    if (!freezerData.shelves) return null;
+
+    return freezerData.shelves.map((shelf) => (
+          <Shelf
+            key={shelf.id}
+            shelf={shelf}
+            freezerId={freezerData.id}
+            freezerData={freezerData}
+            onRemoveShelf={onRemoveShelf}
+            onUpdateShelf={onUpdateShelf}
+            onAddProduct={onAddProduct}
+            onUpdateProduct={onUpdateProduct}
+            onRemoveProduct={onRemoveProduct}
+          />
+      ));
+  }, [freezerData.shelves, freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct]);
+
+  const unassignedShelf = useMemo(() => {
+    return <Shelf
+      key='unassigned'
+      shelf={{id: '', name: 'Unassigned Products'}}
+      freezerId={freezerData.id}
+      freezerData={freezerData}
+      onRemoveShelf={onRemoveShelf}
+      onUpdateShelf={onUpdateShelf}
+      onAddProduct={onAddProduct}
+      onUpdateProduct={onUpdateProduct}
+      onRemoveProduct={onRemoveProduct}
+      className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/30 dark:to-blue-900/20 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 border border-dashed border-gray-300 dark:border-gray-600 backdrop-blur-sm"
+    />
+  }, [freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct])
+
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       {/* Compact Header */}
@@ -32,28 +93,12 @@ export default function Freezer({
           
           <div className="flex items-center">
             <ActionButton
-              onClick={() =>
-                open({
-                  mode: 'edit',
-                  title: "Edit Freezer",
-                  onSubmit: data => { onEditFreezer(data.name); },
-                  fields: [
-                    { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
-                  ],
-                  initialData: { name: freezerData.name }
-                })
-              }
+              onClick={handleEditFreezer}
               action='edit'
               className="p-1.5 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200 hover:scale-110"
             />
             <ActionButton
-              onClick={() =>
-                open({
-                  mode: 'delete',
-                  title: "Delete Freezer",
-                  onSubmit: freezerId => {onDeleteFreezer(freezerId)},
-                })
-              }
+              onClick={handleDeleteFreezer}
               action='delete'
               className="p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200 hover:scale-110"
             />
@@ -95,47 +140,15 @@ export default function Freezer({
           <div className="p-4">
             {/* Shelves Container - More Compact */}
             <div className="flex flex-col gap-3 max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-track-blue-100 scrollbar-thumb-blue-300 dark:scrollbar-track-blue-900 dark:scrollbar-thumb-blue-700 pr-2">
-              {freezerData.shelves && freezerData.shelves.map((shelf, index) => (
-                  <Shelf
-                    shelf={shelf}
-                    freezerId={freezerData.id}
-                    freezerData={freezerData}
-                    onRemoveShelf={onRemoveShelf}
-                    onUpdateShelf={onUpdateShelf}
-                    onAddProduct={onAddProduct}
-                    onUpdateProduct={onUpdateProduct}
-                    onRemoveProduct={onRemoveProduct}
-                    className="bg-white dark:bg-gray-800/50 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100 dark:border-gray-700/50 backdrop-blur-sm"
-                  />
-              ))}
+              {shelvesList}
               
               {/* Unassigned Products Shelf */}
-                <Shelf
-                  key='unassigned'
-                  shelf={{id: '', name: 'Unassigned Products'}}
-                  freezerId={freezerData.id}
-                  freezerData={freezerData}
-                  onRemoveShelf={onRemoveShelf}
-                  onUpdateShelf={onUpdateShelf}
-                  onAddProduct={onAddProduct}
-                  onUpdateProduct={onUpdateProduct}
-                  onRemoveProduct={onRemoveProduct}
-                  className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/30 dark:to-blue-900/20 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 border border-dashed border-gray-300 dark:border-gray-600 backdrop-blur-sm"
-                />
-              
+              {unassignedShelf}
+
               {/* Add Shelf Button */}
               <div className="flex justify-center mt-3">
                 <ActionButton
-                  onClick={() =>
-                    open({
-                      mode: 'add',
-                      title: "Add New Shelf",
-                      onSubmit: ({ name }) => { onAddShelf(name) },
-                      fields: [
-                        { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
-                      ],
-                    })
-                  }
+                  onClick={handleAddShelf}
                   label="Add New Shelf"
                   action="submit"
                   className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 text-sm"

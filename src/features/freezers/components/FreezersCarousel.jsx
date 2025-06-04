@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, EffectCoverflow } from 'swiper/modules';
 import 'swiper/css';
@@ -43,6 +43,38 @@ export default function FreezerCarousel() {
     }
     return null;
   }
+
+  const handleDeleteFreezer = useCallback((id) => {
+    deleteFreezer(id);
+  }, [deleteFreezer])
+
+  const handleEditFreezer = useCallback((id, newName) => {
+    updateFreezer(id, newName)
+  }, [updateFreezer])
+
+  const handleAddShelf = useCallback((freezerId, shelfName) => {
+    addShelf(freezerId, shelfName)
+  }, [addShelf]);
+
+  const handleUpdateShelf = useCallback((freezerId, shelfId, newName) => {
+    updateShelf(freezerId, shelfId, newName)
+  }, [updateShelf])
+
+  const handleRemoveShelf = useCallback((freezerId, shelfId) => {
+    removeShelf(freezerId, shelfId)
+  }, [removeShelf])
+
+  const handleAddProduct = useCallback((freezerId, shelfId, product) => {
+    addProduct(freezerId, shelfId, product);
+  }, [addProduct]);
+
+  const handleUpdateProduct = useCallback((freezerId, shelfId, productId, newProduct) => {
+    updateProduct(freezerId, shelfId, productId, newProduct);
+  }, [updateProduct]);
+
+  const handleRemoveProduct = useCallback((freezerId, shelfId, productId) => {
+    removeProduct(freezerId, shelfId, productId);
+  }, [removeProduct]);
 
   const { showScanner, openScanner, closeScanner, scanResult, scanError, qrContainerId } = 
     useQrScanner({
@@ -89,6 +121,82 @@ export default function FreezerCarousel() {
         console.error('Scanner error', errMsg)
       }
     })
+
+    const slides = useMemo(() => {
+      return freezers.map((fr) => (
+          <SwiperSlide key={fr.id} className="flex items-center justify-center">
+            <div className="w-full max-w-3xl">
+              <Freezer 
+                freezerData={fr} 
+                onDeleteFreezer={() => handleDeleteFreezer(fr.id)}
+                onEditFreezer={newName => handleEditFreezer(fr.id, newName)}
+                onAddShelf={shelfName => handleAddShelf(fr.id, shelfName)}
+                onUpdateShelf={(shelfId, newName) => handleUpdateShelf(fr.id, shelfId, newName)}
+                onRemoveShelf={shelfId => handleRemoveShelf(fr.id, shelfId)}
+                onAddProduct={(shelfId, product) => handleAddProduct(fr.id, shelfId, product)}
+                onUpdateProduct={(shelfId, productId, newProduct) => handleUpdateProduct(fr.id, shelfId, productId, newProduct)}
+                onRemoveProduct={(shelfId, productId) => handleRemoveProduct(fr.id, shelfId, productId)}
+              />
+            </div>
+          </SwiperSlide>
+        ))
+  }, [freezers, handleDeleteFreezer, handleEditFreezer, handleAddShelf, handleUpdateShelf,
+    handleRemoveProduct, handleAddProduct, handleUpdateProduct, handleRemoveProduct
+  ])
+
+  const emptySlide = useMemo(() => {
+    return <SwiperSlide className='flex items-center justify-center px-4 py-8 sm:px-0'>
+        <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 p-6 sm:p-12 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-2xl sm:rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-800/30 backdrop-blur-sm w-full max-w-xl">
+          
+          <div className="text-center mb-4 sm:mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Manage your freezers
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Create a new freezer or add/edit a product with QR-code
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full justify-center">
+            
+            <div className="group flex flex-col items-center w-full sm:w-auto">
+              <ActionButton 
+                label="New Freezer" 
+                onClick={() =>
+                  open({
+                    mode: 'add',
+                    title: "Freezer",
+                    onSubmit: ({ name }) => {addFreezer(name)},
+                    fields: [
+                      { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
+                    ],
+                  })
+                }
+                action="add" 
+                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-blue-500/25"
+              />
+              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Create from scratch
+              </div>
+            </div>
+
+            <p className="text-gray-500 dark:text-gray-400">or</p>
+            
+            <div className="group flex flex-col items-center w-full sm:w-auto">
+              <ActionButton
+                label="Scan QR Code"
+                onClick={openScanner}
+                action="scan"
+                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-purple-500/25"
+              />
+              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Scan existing freezer
+              </div>
+            </div>
+          </div>
+        </div>
+      </SwiperSlide>
+  }, [open, addFreezer, openScanner])
 
   if (loading) return (
     <div className="flex items-center justify-center h-screen">
@@ -147,75 +255,8 @@ export default function FreezerCarousel() {
         observeSlideChildren={true}
         className='w-full h-full flex justify-center items-center'
       >
-        {freezers.map((fr) => (
-          <SwiperSlide key={fr.id} className="flex items-center justify-center">
-            <div className="w-full max-w-3xl">
-              <Freezer 
-                freezerData={fr} 
-                onDeleteFreezer={() => deleteFreezer(fr.id)}
-                onEditFreezer={newName => updateFreezer(fr.id, newName)}
-                onAddShelf={shelfName => addShelf(fr.id, shelfName)}
-                onUpdateShelf={(shelfId, newName) => updateShelf(fr.id, shelfId, newName)}
-                onRemoveShelf={shelfId => removeShelf(fr.id, shelfId)}
-                onAddProduct={(shelfId, product) => addProduct(fr.id, shelfId, product)}
-                onUpdateProduct={(shelfId, productId, newProduct) => updateProduct(fr.id, shelfId, productId, newProduct)}
-                onRemoveProduct={(shelfId, productId) => removeProduct(fr.id, shelfId, productId)}
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-        
-       <SwiperSlide className='flex items-center justify-center px-4 py-8 sm:px-0'>
-        <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 p-6 sm:p-12 bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-2xl sm:rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-800/30 backdrop-blur-sm w-full max-w-xl">
-          
-          <div className="text-center mb-4 sm:mb-6">
-            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              Manage your freezers
-            </h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-              Create a new freezer or add/edit a product with QR-code
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full justify-center">
-            
-            <div className="group flex flex-col items-center w-full sm:w-auto">
-              <ActionButton 
-                label="New Freezer" 
-                onClick={() =>
-                  open({
-                    mode: 'add',
-                    title: "Freezer",
-                    onSubmit: ({ name }) => {addFreezer(name)},
-                    fields: [
-                      { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
-                    ],
-                  })
-                }
-                action="add" 
-                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-blue-500/25"
-              />
-              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Create from scratch
-              </div>
-            </div>
-
-            <p className="text-gray-500 dark:text-gray-400">or</p>
-            
-            <div className="group flex flex-col items-center w-full sm:w-auto">
-              <ActionButton
-                label="Scan QR Code"
-                onClick={openScanner}
-                action="scan"
-                className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 group-hover:shadow-purple-500/25"
-              />
-              <div className="text-center mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Scan existing freezer
-              </div>
-            </div>
-          </div>
-        </div>
-      </SwiperSlide>
+        {slides}
+        {emptySlide}
       </Swiper>
 
       {/* Custom navigation buttons */}

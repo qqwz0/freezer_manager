@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-react';
 import { formatDMY } from 'shared/utils';
-import { useCategories } from 'freezers/hooks';
 
 function getImageSrc(image) {
     if (!image) return null;
