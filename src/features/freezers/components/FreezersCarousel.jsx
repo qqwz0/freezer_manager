@@ -5,34 +5,27 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/effect-coverflow';
 
-import { ActionButton, FormModal, QrScannerModal } from 'shared/ui';
+import { useFreezerContext } from 'freezers/hooks';
+import { ActionButton, FormModal, QrScannerModal, LoadingScreen } from 'shared/ui';
 import { useModal, useQrScanner } from 'shared/hooks';
 import { formatDMY } from 'shared/utils';
 
 import { Freezer } from 'freezers/components';
-import { useFreezers, useCategories } from 'freezers/hooks';
 
 import { toast } from 'react-toastify';
 
 export default function FreezerCarousel() {
   const { config, open, close } = useModal();
-  
-  const { 
+
+  const {
     freezers,
     loading,
     error,
+    categories,
+    units,
     addFreezer,
-    updateFreezer,
-    deleteFreezer,
-    addShelf,
-    updateShelf,
-    removeShelf,
-    addProduct,
-    updateProduct,
-    removeProduct
-  } = useFreezers();
-
-  const { categories, units } = useCategories();
+    updateProduct, 
+  } = useFreezerContext();
 
   function findProductLocation(freezers, productId) {
     for (const freezer of freezers) {
@@ -43,38 +36,6 @@ export default function FreezerCarousel() {
     }
     return null;
   }
-
-  const handleDeleteFreezer = useCallback((id) => {
-    deleteFreezer(id);
-  }, [deleteFreezer])
-
-  const handleEditFreezer = useCallback((id, newName) => {
-    updateFreezer(id, newName)
-  }, [updateFreezer])
-
-  const handleAddShelf = useCallback((freezerId, shelfName) => {
-    addShelf(freezerId, shelfName)
-  }, [addShelf]);
-
-  const handleUpdateShelf = useCallback((freezerId, shelfId, newName) => {
-    updateShelf(freezerId, shelfId, newName)
-  }, [updateShelf])
-
-  const handleRemoveShelf = useCallback((freezerId, shelfId) => {
-    removeShelf(freezerId, shelfId)
-  }, [removeShelf])
-
-  const handleAddProduct = useCallback((freezerId, shelfId, product) => {
-    addProduct(freezerId, shelfId, product);
-  }, [addProduct]);
-
-  const handleUpdateProduct = useCallback((freezerId, shelfId, productId, newProduct) => {
-    updateProduct(freezerId, shelfId, productId, newProduct);
-  }, [updateProduct]);
-
-  const handleRemoveProduct = useCallback((freezerId, shelfId, productId) => {
-    removeProduct(freezerId, shelfId, productId);
-  }, [removeProduct]);
 
   const { showScanner, openScanner, closeScanner, scanResult, scanError, qrContainerId } = 
     useQrScanner({
@@ -128,21 +89,11 @@ export default function FreezerCarousel() {
             <div className="w-full max-w-3xl">
               <Freezer 
                 freezerData={fr} 
-                onDeleteFreezer={() => handleDeleteFreezer(fr.id)}
-                onEditFreezer={newName => handleEditFreezer(fr.id, newName)}
-                onAddShelf={shelfName => handleAddShelf(fr.id, shelfName)}
-                onUpdateShelf={(shelfId, newName) => handleUpdateShelf(fr.id, shelfId, newName)}
-                onRemoveShelf={shelfId => handleRemoveShelf(fr.id, shelfId)}
-                onAddProduct={(shelfId, product) => handleAddProduct(fr.id, shelfId, product)}
-                onUpdateProduct={(shelfId, productId, newProduct) => handleUpdateProduct(fr.id, shelfId, productId, newProduct)}
-                onRemoveProduct={(shelfId, productId) => handleRemoveProduct(fr.id, shelfId, productId)}
               />
             </div>
           </SwiperSlide>
         ))
-  }, [freezers, handleDeleteFreezer, handleEditFreezer, handleAddShelf, handleUpdateShelf,
-    handleRemoveProduct, handleAddProduct, handleUpdateProduct, handleRemoveProduct
-  ])
+  }, [freezers])
 
   const emptySlide = useMemo(() => {
     return <SwiperSlide className='flex items-center justify-center px-4 py-8 sm:px-0'>
@@ -199,14 +150,7 @@ export default function FreezerCarousel() {
   }, [open, addFreezer, openScanner])
 
   if (loading) return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="relative flex flex-col items-center">
-        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-        <div className="mt-4 text-lg font-medium text-gray-600 dark:text-gray-300 animate-pulse">
-          Loading freezers...
-        </div>
-      </div>
-    </div>
+    <LoadingScreen />
   );
   
   if (error) return (
@@ -232,7 +176,7 @@ export default function FreezerCarousel() {
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-900/10 dark:to-purple-900/10 pointer-events-none"></div>
       
-      <Swiper
+     {!loading && <Swiper
         modules={[Navigation, EffectCoverflow]}
         spaceBetween={30}
         slidesPerView={1}
@@ -258,7 +202,7 @@ export default function FreezerCarousel() {
         {slides}
         {emptySlide}
       </Swiper>
-
+}
       {/* Custom navigation buttons */}
       <div className="swiper-button-prev-custom absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 border border-gray-200 dark:border-gray-700">
         <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

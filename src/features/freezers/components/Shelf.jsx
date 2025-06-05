@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -6,15 +6,15 @@ import {
   AccordionTitle
 } from 'flowbite-react';
 
-import {useCategories} from 'freezers/hooks';
-
-import { ActionButton, FormModal } from 'shared/ui';
-import { useModal } from 'shared/hooks';
+import { useFreezerContext } from 'freezers/hooks';
 import { ShelfProduct } from 'freezers/components';
+import { useModal } from 'shared/hooks';
+import { ActionButton, FormModal } from 'shared/ui';
 
-export default function Shelf({ shelf, freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct }) {
+export default function Shelf({ shelf, freezerData }) {
   const { config, open, close } = useModal();
-  const { categories, units } = useCategories();
+
+   const { categories, units, addProduct, updateShelf, removeShelf } = useFreezerContext();
 
   const shelfData = shelf.name === 'No shelf products' ? {id: shelf.id, name: '-- No Shelf --'} : {id: shelf.id, name: shelf.name }
 
@@ -30,27 +30,27 @@ export default function Shelf({ shelf, freezerData, onRemoveShelf, onUpdateShelf
     open({
       mode: 'edit',
       title: "Shelf",
-      onSubmit: ({ name }) => onUpdateShelf(shelf.id, name),
+      onSubmit: ({ name }) => updateShelf(freezerData.id, shelf.id, name),
       fields: [
         { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
       ],
       initialData: { name: shelf.name }
     });
-  }, [open, onUpdateShelf, shelf.id, shelf.name])
+  }, [open, updateShelf, shelf.id, shelf.name, freezerData.id])
 
   const handleDeleteShelf = useCallback(() => {
     open({
       mode: 'delete',
       title: "Shelf",
-      onSubmit: () => onRemoveShelf(shelf.id),
+      onSubmit: () => removeShelf(freezerData.id, shelf.id),
     })
-  }, [open, onRemoveShelf, shelf.id])
+  }, [open, removeShelf, shelf.id])
 
   const handleAddProduct = useCallback(() => {
     open({
       mode: 'add',
       title: "Product",
-      onSubmit: (product) => onAddProduct(shelf.id, product),
+      onSubmit: (product) => addProduct(freezerData.id, shelf.id, product),
       fields: [
         { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
         { key: 'shelfId', label: 'Shelf', type: 'select', options: freezerData.shelves, required: false, value: shelfData},
@@ -62,7 +62,7 @@ export default function Shelf({ shelf, freezerData, onRemoveShelf, onUpdateShelf
         { key: 'expirationDate', label: 'Expiration Date', type: 'date', placeholder: 'Enter expiration date', required: false },
       ]
     })
-  }, [open, onAddProduct, shelf.id, freezerData.shelves, units, categories])
+  }, [open, addProduct, shelf.id, freezerData.shelves, units, categories])
 
 
   return (
@@ -95,15 +95,9 @@ export default function Shelf({ shelf, freezerData, onRemoveShelf, onUpdateShelf
                 {filteredProducts.map(product => (
                   <ShelfProduct 
                     key={product.id} 
-                    shelves={freezerData.shelves}
+                    freezerData={freezerData}
                     product={product} 
-                    shelfId={shelf.id}
-                    onUpdateProduct={onUpdateProduct}
-                    onRemoveProduct={onRemoveProduct}
-                    freezerId={freezerData.id}
-                    className='flex flex-row justify-between items-center w-full'
-                    categories={categories}
-                    units={units}
+                    shelf={shelf}
                   />
                 ))}
                 <ActionButton 

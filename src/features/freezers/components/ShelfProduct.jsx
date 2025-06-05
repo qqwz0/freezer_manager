@@ -1,14 +1,15 @@
-import React, { useState, useMemo, useCallback } from 'react'
-import { Card } from 'flowbite-react'
-import { ActionButton, FormModal } from 'shared/ui'
-import { useModal } from 'shared/hooks'
-import { ProductModal } from 'freezers/components'
-import { formatDMY } from 'shared/utils'
+import React, { useState, useMemo, useCallback } from 'react';
+import { ActionButton, FormModal } from 'shared/ui';
+import { useModal } from 'shared/hooks';
+import { useFreezerContext } from 'freezers/hooks';
+import { ProductModal } from 'freezers/components';
 
-function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, categories, units, shelves }) {
+function ShelfProduct({ product, shelf, freezerData }) {
   const [showProductModal, setShowProductModal] = useState(false)
 
   const { config, open, close } = useModal();
+
+  const { updateProduct, removeProduct, shelves, units, categories } = useFreezerContext();
 
   const category = useMemo(
     () => categories.find(cat => cat.id === product.category), 
@@ -44,11 +45,11 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
       mode: 'edit',
       title: "Edit Product",
       onSubmit: (newProduct) => {
-        onUpdateProduct(shelfId, product.id, newProduct);
+        updateProduct(freezerData.id, shelf.id, product.id, newProduct);
       },
       fields: [
         { key: 'name', label: 'Product Name', type: 'text', placeholder: 'Enter product name', required: true },
-        { key: 'shelfId', label: 'Shelf', type: 'select', options: shelves, required: false },
+        { key: 'shelfId', label: 'Shelf', type: 'select', options: freezerData.shelves, required: false },
         { key: 'quantity', label: 'Quantity', type: 'number', placeholder: 'Enter quantity', required: true },
         { key: 'unit', label: 'Unit', type: 'select', options: units, required: true },
         { key: 'photoUrl', label: 'Picture', type: 'file', placeholder: 'Upload picture', required: false },
@@ -59,7 +60,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
       initialData: {
         id: product.id,
         name: product.name,
-        shelfId: shelfId,
+        shelfId: shelf.id,
         quantity: product.quantity,
         unit: product.unit,
         category: product.category || '',
@@ -68,7 +69,7 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
         photoUrl: product.photoUrl || '',
       }
     });
-  }, [open, onUpdateProduct, product.id, shelfId, categories, units, shelves])
+  }, [open, updateProduct, freezerData.id, product.id, shelf.id, categories, units, shelves])
 
   const handleDeleteClick = useCallback((e) => {
     e.stopPropagation();
@@ -76,11 +77,11 @@ function ShelfProduct({ product, shelfId, onRemoveProduct, onUpdateProduct, cate
       mode: 'delete',
       title: "Delete Product",
       onSubmit: () => {
-        onRemoveProduct(shelfId, product.id);
+        removeProduct(freezerData.id, shelf.Id, product.id);
         console.log(product.id);
       },
     });
-  }, [open, onRemoveProduct, product.id, shelfId])
+  }, [open, removeProduct, product.id, freezerData.id, shelf.Id])
 
   const handleCloseModal = useCallback(() => {
     setShowProductModal(false);

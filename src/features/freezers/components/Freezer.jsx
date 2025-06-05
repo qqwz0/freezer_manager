@@ -1,51 +1,49 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card } from 'flowbite-react';
 
+import { useFreezerContext } from 'freezers/hooks';
+
 import { Shelf } from 'freezers/components';
 import { useModal } from 'shared/hooks';
 import { ActionButton, FormModal } from 'shared/ui';
 
-export default function Freezer({
-  freezerData,
-  onDeleteFreezer,
-  onEditFreezer,
-  onAddShelf,
-  onUpdateShelf,
-  onRemoveShelf,
-  onAddProduct,
-  onUpdateProduct,
-  onRemoveProduct
-}) {
+export default function Freezer({ freezerData }) {
   const { config, open, close } = useModal();
   const [isHovered, setIsHovered] = useState(false);
+
+  const {
+    addShelf,
+    deleteFreezer,
+    updateFreezer,
+  } = useFreezerContext();
 
   const handleEditFreezer = useCallback(() =>
     open({
       mode: 'edit',
       title: "Edit Freezer",
-      onSubmit: data => { onEditFreezer(data.name); },
+      onSubmit: data => { updateFreezer(freezerData.id, data.name); },
       fields: [
         { key: 'name', label: 'Freezer Name', type: 'text', placeholder: 'Enter freezer name', required: true }
       ],
       initialData: { name: freezerData.name }
-    }), [open, onEditFreezer, freezerData.name])
+    }), [open, updateFreezer, freezerData.id, freezerData.name])
 
   const handleDeleteFreezer = useCallback(() =>
     open({
       mode: 'delete',
       title: "Delete Freezer",
-      onSubmit: freezerId => {onDeleteFreezer(freezerId)},
-    }), [open, onDeleteFreezer, freezerData.id])
+      onSubmit: () => {deleteFreezer(freezerData.id)},
+    }), [open, deleteFreezer, freezerData.id])
 
   const handleAddShelf = useCallback(() =>
       open({
         mode: 'add',
         title: "Add New Shelf",
-        onSubmit: ({ name }) => { onAddShelf(name) },
+        onSubmit: ({ name }) => { addShelf(freezerData.id, name) },
         fields: [
           { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
         ],
-      }), [open, onAddShelf])
+      }), [open, addShelf, freezerData.id])
 
   const shelvesList = useMemo(() => {
     if (!freezerData.shelves) return null;
@@ -54,31 +52,18 @@ export default function Freezer({
           <Shelf
             key={shelf.id}
             shelf={shelf}
-            freezerId={freezerData.id}
             freezerData={freezerData}
-            onRemoveShelf={onRemoveShelf}
-            onUpdateShelf={onUpdateShelf}
-            onAddProduct={onAddProduct}
-            onUpdateProduct={onUpdateProduct}
-            onRemoveProduct={onRemoveProduct}
           />
       ));
-  }, [freezerData.shelves, freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct]);
+  }, [freezerData.shelves, freezerData]);
 
   const unassignedShelf = useMemo(() => {
     return <Shelf
       key='unassigned'
       shelf={{id: '', name: 'Unassigned Products'}}
-      freezerId={freezerData.id}
       freezerData={freezerData}
-      onRemoveShelf={onRemoveShelf}
-      onUpdateShelf={onUpdateShelf}
-      onAddProduct={onAddProduct}
-      onUpdateProduct={onUpdateProduct}
-      onRemoveProduct={onRemoveProduct}
-      className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/30 dark:to-blue-900/20 rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-200 border border-dashed border-gray-300 dark:border-gray-600 backdrop-blur-sm"
     />
-  }, [freezerData, onRemoveShelf, onUpdateShelf, onAddProduct, onUpdateProduct, onRemoveProduct])
+  }, [freezerData])
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
