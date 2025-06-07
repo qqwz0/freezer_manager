@@ -10,6 +10,7 @@ import {
   createProduct,
   editProduct,
   deleteProduct,
+  updateShelfOrder
 } from 'services/firestoreService';
 import { useAuth } from 'auth';
 import { parseDMY } from 'shared/utils'
@@ -132,6 +133,33 @@ export default function useFreezers() {
                             ? { ...s, name: newName.trim() }
                             : s
                         )
+                    }
+                    : f
+                )
+            );
+        } catch (e) {
+            console.error(e);
+            setError(e);
+        } finally {
+            setLoading(false);
+        }
+    }, [user])
+
+    const updateShelfPosition = useCallback(async (freezerId, shelfId, position) => {
+        if (!shelfId || !freezerId) return;
+
+        try {
+            await updateShelfOrder(user.uid, freezerId, shelfId, position);
+            setFreezers(prev => 
+                prev.map(f => 
+                    f.id === freezerId
+                    ? {
+                        ...f, 
+                        shelves: f.shelves.map(s => 
+                            s.id === shelfId
+                            ? { ...s, order: position }
+                            : s
+                        ).sort((a, b) => a.order - b.order)
                     }
                     : f
                 )
@@ -305,6 +333,7 @@ export default function useFreezers() {
         deleteFreezer: remove,
         addShelf,
         updateShelf,
+        updateShelfPosition,
         removeShelf,
         addProduct,
         updateProduct,

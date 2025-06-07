@@ -1,5 +1,5 @@
 import { firestore } from "services/firebaseConfig";
-import { collection, addDoc, getDocs, deleteDoc, updateDoc, doc, orderBy, query, where, getDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, updateDoc, limit, doc, orderBy, query, where, getDoc } from "firebase/firestore";
 import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 import { uploadToCloudinary } from "services/cloudinary";
@@ -18,9 +18,28 @@ export const createFreezer = async (userId, name) => {
 
 export const createShelf = async (userId, freezerId, name = "") => {
   if (!freezerId) throw new Error("Freezer ID is required");
+
+  const shelvesCol = collection(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "shelves"
+  );
+
+  const q = query(shelvesCol, orderBy("order", "desc"), limit(1));
+  const snap = await getDocs(q);
+
+  let nextOrder = 0;
+  if (!snap.empty) {
+    const highestOrder = snap.docs[0].data().order;
+    nextOrder = (typeof highestOrder === 'number' ? highestOrder : 0) + 1
+  }
+
   const shelfRef = await addDoc(
-    collection(firestore, "users", userId, "freezers", freezerId, "shelves"),
-    { name, createdAt: serverTimestamp() }
+    shelvesCol,
+    { name, createdAt: serverTimestamp(), order: nextOrder, }
   );
   return shelfRef.id;
 };
@@ -138,28 +157,6 @@ export const getUserFreezerData = async (userId) => {
   return result;
 };
 
-
-// export const getAllCategories = async () => {
-//   const q = query(
-//     collection(firestore, "categories"),
-//     where("createdBy", "==", ""),
-//     orderBy("createdAt", "asc")
-//   );
-//   const snap = await getDocs(q);
-//   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-// };
-
-// export const getAllCategoriesByUser = async (userId) => {
-//   if (!userId) throw new Error("User ID is required");
-//   const q = query(
-//     collection(firestore, "categories"),
-//     where("createdBy", "==", userId),
-//     orderBy("createdAt", "asc")
-//   );
-//   const snap = await getDocs(q);
-//   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-// };
-
 export const getCategoryById = async (categoryId) => {
   if (!categoryId) throw new Error("Category ID is required");
   const docRef = doc(firestore, "categories", categoryId);
@@ -230,6 +227,31 @@ export const editShelf = async (userId, freezerId, shelfId, name) => {
     name,
     updatedAt: new Date(),
   });
+};
+
+export const updateShelfOrder = async (
+  userId,
+  freezerId,
+  shelfId, 
+  newOrder
+) => {
+  if (!freezerId) throw new Error("Freezer ID is required");
+  if (!shelfId)   throw new Error("Shelf ID is required");
+
+  console.log('newOrder', newOrder)
+
+  const shelfRef = doc(
+    firestore,
+    "users",
+    userId,
+    "freezers",
+    freezerId,
+    "shelves",
+    shelfId
+  );
+
+  // Оновлюємо тільки поле order
+  await updateDoc(shelfRef, { order: newOrder });
 };
 
 export const editProduct = async (

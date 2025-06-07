@@ -1,11 +1,30 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card } from 'flowbite-react';
 
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors} from '@dnd-kit/core'
+import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates} from '@dnd-kit/sortable'
+import { restrictToVerticalAxis, restrictToParentElement, } from '@dnd-kit/modifiers';
 import { useFreezerContext } from 'freezers/hooks';
 
 import { Shelf } from 'freezers/components';
 import { useModal } from 'shared/hooks';
 import { ActionButton, FormModal } from 'shared/ui';
+
+function SortableShelf({ shelf, freezerData }) {
+  const { attributes, listeners, setNodeRef, transform, transition} = useSortable({ id: shelf.id})
+  const style = {
+    transform: transform
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Shelf shelf={shelf} freezerData={freezerData} />
+    </div>
+  );
+}
 
 export default function Freezer({ freezerData }) {
   const { config, open, close } = useModal();
@@ -15,6 +34,7 @@ export default function Freezer({ freezerData }) {
     addShelf,
     deleteFreezer,
     updateFreezer,
+    updateShelfPosition
   } = useFreezerContext();
 
   const handleEditFreezer = useCallback(() =>
@@ -44,19 +64,7 @@ export default function Freezer({ freezerData }) {
           { key: 'name', label: 'Shelf Name', type: 'text', placeholder: 'Enter shelf name', required: true }
         ],
       }), [open, addShelf, freezerData.id])
-
-  const shelvesList = useMemo(() => {
-    if (!freezerData.shelves) return null;
-
-    return freezerData.shelves.map((shelf) => (
-          <Shelf
-            key={shelf.id}
-            shelf={shelf}
-            freezerData={freezerData}
-          />
-      ));
-  }, [freezerData.shelves, freezerData]);
-
+    
   const unassignedShelf = useMemo(() => {
     return <Shelf
       key='unassigned'
@@ -64,6 +72,33 @@ export default function Freezer({ freezerData }) {
       freezerData={freezerData}
     />
   }, [freezerData])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      }
+    }),
+  );
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = freezerData.shelves.findIndex(s => s.id === active.id);
+      const newIndex = freezerData.shelves.findIndex(s => s.id === over.id);
+      const newOrder = arrayMove(freezerData.shelves, oldIndex, newIndex)
+    
+      newOrder.forEach((shelf, index) => {
+        if (shelf.order !== index) {
+          updateShelfPosition(freezerData.id, shelf.id, index);
+        }
+      });
+    }
+  }, [freezerData.shelves, updateShelfPosition, freezerData.id])
+
+  const sortedShelves = useMemo(() => {
+    return [...(freezerData.shelves || [])].sort((a, b) => a.order - b.order);
+  }, [freezerData.shelves])
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -123,23 +158,41 @@ export default function Freezer({ freezerData }) {
           <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-t-lg"></div>
           
           <div className="p-4">
-            {/* Shelves Container - More Compact */}
-            <div className="flex flex-col gap-3 max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-track-blue-100 scrollbar-thumb-blue-300 dark:scrollbar-track-blue-900 dark:scrollbar-thumb-blue-700 pr-2">
-              {shelvesList}
-              
-              {/* Unassigned Products Shelf */}
-              {unassignedShelf}
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={sortedShelves.map(s => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {/* Shelves Container - More Compact */}
+                <div className="flex flex-col gap-3 max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-track-blue-100 scrollbar-thumb-blue-300 dark:scrollbar-track-blue-900 dark:scrollbar-thumb-blue-700 pr-2">
+                  {sortedShelves.map(shelf => (
+                    <SortableShelf 
+                    key={shelf.id}
+                    shelf={shelf}
+                    freezerData={freezerData}
+                    />
+                  ))}
+                  
+                  {/* Unassigned Products Shelf */}
+                  {unassignedShelf}
 
-              {/* Add Shelf Button */}
-              <div className="flex justify-center mt-3">
-                <ActionButton
-                  onClick={handleAddShelf}
-                  label="Add New Shelf"
-                  action="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 text-sm"
-                />
-              </div>
-            </div>
+                  {/* Add Shelf Button */}
+                  <div className="flex justify-center mt-3">
+                    <ActionButton
+                      onClick={handleAddShelf}
+                      label="Add New Shelf"
+                      action="submit"
+                      className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 text-sm"
+                    />
+                  </div>
+                </div>
+              </SortableContext >
+            </DndContext>
           </div>
         </div>
       </Card>
